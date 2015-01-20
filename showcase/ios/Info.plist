@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>PlayN Showcase</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.googlecode.playn.showcase</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
+	<key>MinimumOSVersion</key>
+	<string>5.0</string>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>2</integer>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>assets/text/Museo.otf</string>
+	</array>
+	<key>UIStatusBarHidden</key>
+	<true/>
+</dict>
+</plist>

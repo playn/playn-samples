@@ -1,0 +1,5 @@
+bin
+obj
+hello-core.dll*
+hello.userprefs
+hello.pidb

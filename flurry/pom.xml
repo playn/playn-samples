@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.googlecode.playn</groupId>
+    <artifactId>playn-project</artifactId>
+    <version>1.8-SNAPSHOT</version>
+  </parent>
+
+  <groupId>com.googlecode.playn</groupId>
+  <artifactId>playn-flurry</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>FlurryExample Metaproject</name>
+
+  <properties>
+    <playn.version>1.8-SNAPSHOT</playn.version>
+  </properties>
+
+  <!-- this is for Mavenized versions of Flurry jars/DLLs -->
+  <repositories>
+    <repository>
+      <id>ooo-public</id>
+      <url>http://ooo-maven.googlecode.com/hg/repository</url>
+    </repository>
+  </repositories>
+
+  <modules>
+    <module>assets</module>
+    <module>core</module>
+  </modules>
+
+  <profiles>
+    <profile>
+      <id>java</id>
+      <activation><activeByDefault>true</activeByDefault></activation>
+      <modules><module>java</module></modules>
+    </profile>
+    <profile>
+      <id>android</id>
+      <modules><module>android</module></modules>
+    </profile>
+    <profile>
+      <id>ios</id>
+      <modules><module>ios</module></modules>
+    </profile>
+  </profiles>
+</project>

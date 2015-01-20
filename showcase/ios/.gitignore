@@ -1,0 +1,5 @@
+bin
+obj
+showcase-core.dll*
+showcase.userprefs
+showcase.pidb
