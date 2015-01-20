@@ -14,7 +14,7 @@
  * limitations under the License.
 -->
 <module rename-to='hellogame'>
-  <inherits name='playn.PlayN'/>
+  <inherits name='playn.Scene'/>
 
   <!--
     Optionally, enable gwt-log's advanced logging features:

@@ -15,17 +15,18 @@
  */
 package playn.sample.hello.html;
 
-import playn.core.PlayN;
-import playn.html.HtmlGame;
+import com.google.gwt.core.client.EntryPoint;
+
 import playn.html.HtmlPlatform;
 import playn.sample.hello.core.HelloGame;
 
-public class HelloGameHtml extends HtmlGame {
+public class HelloGameHtml implements EntryPoint {
 
-  @Override
-  public void start() {
-    HtmlPlatform platform = HtmlPlatform.register();
+  @Override public void onModuleLoad () {
+    HtmlPlatform.Config config = new HtmlPlatform.Config();
+    HtmlPlatform platform = new HtmlPlatform(config);
     platform.assets().setPathPrefix("hellogame/");
-    PlayN.run(new HelloGame());
+    new HelloGame(platform);
+    platform.start();
   }
 }

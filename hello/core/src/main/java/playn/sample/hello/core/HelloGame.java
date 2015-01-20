@@ -15,64 +15,67 @@
  */
 package playn.sample.hello.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import react.Slot;
 
-import static playn.core.PlayN.*;
-
-import playn.core.Game;
-import playn.core.GroupLayer;
+import playn.core.Clock;
 import playn.core.Image;
-import playn.core.ImageLayer;
+import playn.core.Platform;
 import playn.core.Pointer;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
+import playn.scene.SceneGame;
+import playn.scene.SceneGame;
 
-public class HelloGame extends Game.Default {
+public class HelloGame extends SceneGame {
 
-  GroupLayer peaLayer;
-  List<Pea> peas = new ArrayList<Pea>(0);
+  public class Pea {
+    // choose a semi-random angular velocity
+    private final float angVel = (plat.tick() % 10 - 5) / 1000f;
 
-  public static final int UPDATE_RATE = 25;
+    public Pea(final GroupLayer peaLayer, float x, float y) {
+      Image image = plat.assets().getImage("images/pea.png");
+      final ImageLayer layer = new ImageLayer(image);
+      peaLayer.addAt(layer, x, y);
 
-  public HelloGame() {
-    super(UPDATE_RATE);
+      // once the image loads, set our origin to the image center
+      image.state.onSuccess(new Slot<Image>() {
+        @Override public void onEmit(Image image) {
+          layer.setOrigin(image.width() / 2f, image.height() / 2f);
+        }
+      });
+
+      // connect to the paint signal to animate our rotation
+      paint.connect(new Slot<Clock>() {
+        @Override public void onEmit (Clock clock) {
+          layer.setRotation(clock.tick * angVel);
+        }
+      });
+    }
   }
 
-  @Override
-  public void init() {
+  public final Pointer pointer;
+
+  public HelloGame(Platform plat) {
+    super(plat, 25); // 25 millis per frame = ~40fps
+
+    // combine mouse and touch into pointer events
+    pointer = new Pointer(plat);
+
     // create and add background image layer
-    Image bgImage = assets().getImage("images/bg.png");
-    ImageLayer bgLayer = graphics().createImageLayer(bgImage);
-    bgLayer.setSize(graphics().screenWidth(), graphics().screenHeight());
-    graphics().rootLayer().add(bgLayer);
+    Image bgImage = plat.assets().getImage("images/bg.png");
+    ImageLayer bgLayer = new ImageLayer(bgImage);
+    bgLayer.setSize(plat.graphics().viewSize);
+    rootLayer.add(bgLayer);
 
     // create a group layer to hold the peas
-    peaLayer = graphics().createGroupLayer();
-    graphics().rootLayer().add(peaLayer);
+    final GroupLayer peaLayer = new GroupLayer();
+    rootLayer.add(peaLayer);
 
-    // preload the pea image into the asset manager cache
-    assets().getImage(Pea.IMAGE);
-
-    // add a listener for pointer (mouse, touch) input
-    pointer().setListener(new Pointer.Adapter() {
-      @Override
-      public void onPointerEnd(Pointer.Event event) {
-        Pea pea = new Pea(peaLayer, event.x(), event.y());
-        peas.add(pea);
+    // when the pointer is tapped/clicked, add a new pea
+    pointer.events.connect(new Slot<Pointer.Event>() {
+      @Override public void onEmit (Pointer.Event event) {
+        if (event.kind.isStart) new Pea(peaLayer, event.x(), event.y());
       }
     });
-  }
-
-  @Override
-  public void update(int delta) {
-    for (Pea pea : peas) {
-      pea.update(delta);
-    }
-  }
-
-  @Override
-  public void paint(float alpha) {
-    for (Pea pea : peas) {
-      pea.paint(alpha);
-    }
   }
 }

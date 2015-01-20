@@ -15,14 +15,14 @@
  */
 package playn.sample.hello.java;
 
-import playn.core.PlayN;
 import playn.java.JavaPlatform;
 import playn.sample.hello.core.HelloGame;
 
 public class HelloGameJava {
 
   public static void main(String[] args) {
-    JavaPlatform.register();
-    PlayN.run(new HelloGame());
+    JavaPlatform plat = new JavaPlatform(new JavaPlatform.Config());
+    new HelloGame(plat);
+    plat.start();
   }
 }

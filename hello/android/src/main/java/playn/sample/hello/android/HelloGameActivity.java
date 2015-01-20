@@ -16,13 +16,12 @@
 package playn.sample.hello.android;
 
 import playn.android.GameActivity;
-import playn.core.PlayN;
+
 import playn.sample.hello.core.HelloGame;
 
 public class HelloGameActivity extends GameActivity {
 
-  @Override
-  public void main(){
-    PlayN.run(new HelloGame());
+  @Override public void main () {
+    new HelloGame(platform());
   }
 }
