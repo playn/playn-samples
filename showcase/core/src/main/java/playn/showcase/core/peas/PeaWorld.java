@@ -29,20 +29,33 @@ import org.jbox2d.dynamics.contacts.Contact;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
-import playn.core.CanvasImage;
-import playn.core.DebugDrawBox2D;
-import playn.core.GroupLayer;
-import static playn.core.PlayN.graphics;
+import react.Function;
+import react.Functions;
+import react.RFuture;
+import react.Slot;
 
-import playn.showcase.core.peas.entities.Entity;
-import playn.showcase.core.peas.entities.PhysicsEntity;
+import playn.core.Canvas;
+import playn.core.Clock;
+import playn.core.DebugDrawBox2D;
+import playn.core.Image;
+import playn.core.Json;
+import playn.core.Platform;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
+
+import playn.scene.LayerUtil;
+import playn.showcase.core.Showcase;
+import playn.showcase.core.peas.entities.*;
 
 public class PeaWorld implements ContactListener {
-  public GroupLayer staticLayerBack;
-  public GroupLayer dynamicLayer;
-  public GroupLayer staticLayerFront;
+
+  public final Platform plat;
+  public final GroupLayer staticLayerBack;
+  public final GroupLayer dynamicLayer;
+  public final GroupLayer staticLayerFront;
 
   // size of world
   private static int width = 24;
@@ -57,13 +70,15 @@ public class PeaWorld implements ContactListener {
 
   private static boolean showDebugDraw = false;
   private DebugDrawBox2D debugDraw;
+  private ImageLayer debugLayer;
 
-  public PeaWorld(GroupLayer scaledLayer) {
-    staticLayerBack = graphics().createGroupLayer();
+  public PeaWorld (Showcase game, GroupLayer scaledLayer) {
+    this.plat = game.plat;
+    staticLayerBack = new GroupLayer();
     scaledLayer.add(staticLayerBack);
-    dynamicLayer = graphics().createGroupLayer();
+    dynamicLayer = new GroupLayer();
     scaledLayer.add(dynamicLayer);
-    staticLayerFront = graphics().createGroupLayer();
+    staticLayerFront = new GroupLayer();
     scaledLayer.add(staticLayerFront);
 
     // create the physics world
@@ -89,42 +104,92 @@ public class PeaWorld implements ContactListener {
     wallRightShape.set(new Vec2(width, 0), new Vec2(width, height));
     wallRight.createFixture(wallRightShape, 0.0f);
 
-    if (showDebugDraw) {
-      CanvasImage image = graphics().createImage((int) (width / PeasDemo.physUnitPerScreenUnit),
-                                                 (int) (height / PeasDemo.physUnitPerScreenUnit));
-      graphics().rootLayer().add(graphics().createImageLayer(image));
-      debugDraw = new DebugDrawBox2D();
-      debugDraw.setCanvas(image);
-      debugDraw.setFlipY(false);
-      debugDraw.setStrokeAlpha(150);
-      debugDraw.setFillAlpha(75);
-      debugDraw.setStrokeWidth(2.0f);
-      debugDraw.setFlags(DebugDraw.e_shapeBit | DebugDraw.e_jointBit | DebugDraw.e_aabbBit);
-      debugDraw.setCamera(0, 0, 1f / PeasDemo.physUnitPerScreenUnit);
-      world.setDebugDraw(debugDraw);
-    }
+    // when our layer is connected, listen for frame events, disconnect when not
+    LayerUtil.bind(scaledLayer, game.update, new Slot<Clock>() {
+      public void onEmit (Clock clock) { update(clock); }
+    }, game.paint, new Slot<Clock>() {
+      public void onEmit (Clock clock) { paint(clock); }
+    });
   }
 
-  public void update(float delta) {
-    for (Entity e : entities) {
-      e.update(delta);
-    }
-    // the step delta is fixed so box2d isn't affected by framerate
-    world.step(0.033f, 10, 10);
-    processContacts();
+  public RFuture<PeaWorld> loadLevel (final Platform plat, String levelName) {
+    return plat.assets().getText(levelName).flatMap(new Function<String,RFuture<PeaWorld>>() {
+      public RFuture<PeaWorld> apply (String levelJson) {
+        return loadLevel(plat, plat.json().parse(levelJson));
+      }
+    });
   }
 
-  public void paint(float delta) {
-    if (showDebugDraw) {
-      debugDraw.getCanvas().clear();
-      world.drawDebugData();
+  private RFuture<PeaWorld> loadLevel (final Platform plat, Json.Object level) {
+    // previous Portal (used for linking portals)
+    Portal lastPortal = null;
+
+    // track our various image loading states
+    List<RFuture<Image>> states = new ArrayList<>();
+
+    // parse the entities, adding each asset to the asset watcher
+    Json.Array jsonEntities = level.getArray("Entities");
+    for (int i = 0; i < jsonEntities.length(); i++) {
+      Json.Object jsonEntity = jsonEntities.getObject(i);
+      String type = jsonEntity.getString("type");
+      float x = jsonEntity.getNumber("x");
+      float y = jsonEntity.getNumber("y");
+      float a = jsonEntity.getNumber("a");
+
+      Entity entity = null;
+      if (Pea.TYPE.equalsIgnoreCase(type)) {
+        entity = new Pea(this, world, x, y, a);
+      } else if (Block.TYPE.equalsIgnoreCase(type)) {
+        entity = new Block(this, world, x, y, a);
+      } else if (BlockRightRamp.TYPE.equalsIgnoreCase(type)) {
+        entity = new BlockRightRamp(this, world, x, y, a);
+      } else if (BlockLeftRamp.TYPE.equalsIgnoreCase(type)) {
+        entity = new BlockLeftRamp(this, world, x, y, a);
+      } else if (BlockGel.TYPE.equalsIgnoreCase(type)) {
+        entity = new BlockGel(this, world, x, y, a);
+      } else if (BlockSpring.TYPE.equalsIgnoreCase(type)) {
+        entity = new BlockSpring(this, world, x, y, a);
+      } else if (Cloud1.TYPE.equalsIgnoreCase(type)) {
+        entity = new Cloud1(this);
+      } else if (Cloud3.TYPE.equalsIgnoreCase(type)) {
+        entity = new Cloud3(this);
+      } else if (FakeBlock.TYPE.equalsIgnoreCase(type)) {
+        entity = new FakeBlock(this, x, y, a);
+      } else if (Portal.TYPE.equalsIgnoreCase(type)) {
+        entity = new Portal(this, world, x, y, a);
+        if (lastPortal == null) {
+          lastPortal = (Portal) entity;
+        } else {
+          lastPortal.other = (Portal) entity;
+          ((Portal) entity).other = lastPortal;
+          lastPortal = null;
+        }
+      }
+
+      if (entity != null) {
+        states.add(entity.image.state);
+        add(entity);
+      }
     }
-    for (Entity e : entities) {
-      e.paint(delta);
-    }
+
+    // finally wait for all the images to load and then return the world
+    return RFuture.collect(states).map(Functions.constant(this));
   }
 
-  public void add(Entity entity) {
+  public void showDebugDraw (Showcase game) {
+    debugDraw = new DebugDrawBox2D(game.plat, (int) (width / PeasDemo.physUnitPerScreenUnit),
+                                   (int) (height / PeasDemo.physUnitPerScreenUnit));
+    debugDraw.setFlipY(false);
+    debugDraw.setStrokeAlpha(150);
+    debugDraw.setFillAlpha(75);
+    debugDraw.setStrokeWidth(2.0f);
+    debugDraw.setFlags(DebugDraw.e_shapeBit | DebugDraw.e_jointBit | DebugDraw.e_aabbBit);
+    debugDraw.setCamera(0, 0, 1f / PeasDemo.physUnitPerScreenUnit);
+    game.rootLayer.add(debugLayer = new ImageLayer(debugDraw.canvas.image));
+    world.setDebugDraw(debugDraw);
+  }
+
+  public void add (Entity entity) {
     entities.add(entity);
     if (entity instanceof PhysicsEntity) {
       PhysicsEntity physicsEntity = (PhysicsEntity) entity;
@@ -132,8 +197,16 @@ public class PeaWorld implements ContactListener {
     }
   }
 
+  public Image getEntityImage (String name) {
+    String path = "peas/images/" + name;
+    Image image = entityImages.get(path);
+    if (image == null) entityImages.put(path, image = plat.assets().getImage(path));
+    return image;
+  }
+  private final Map<String,Image> entityImages = new HashMap<>();
+
   // handle contacts out of physics loop
-  public void processContacts() {
+  public void processContacts () {
     while (!contacts.isEmpty()) {
       Contact contact = contacts.pop();
 
@@ -153,23 +226,32 @@ public class PeaWorld implements ContactListener {
   }
 
   // Box2d's begin contact
-  @Override
-  public void beginContact(Contact contact) {
+  @Override public void beginContact(Contact contact) {
     contacts.push(contact);
   }
 
   // Box2d's end contact
-  @Override
-  public void endContact(Contact contact) {
-  }
+  @Override public void endContact(Contact contact) {}
 
   // Box2d's pre solve
-  @Override
-  public void preSolve(Contact contact, Manifold oldManifold) {
-  }
+  @Override public void preSolve(Contact contact, Manifold oldManifold) {}
 
   // Box2d's post solve
-  @Override
-  public void postSolve(Contact contact, ContactImpulse impulse) {
+  @Override public void postSolve(Contact contact, ContactImpulse impulse) {}
+
+  private void update (Clock clock) {
+    for (Entity e : entities) e.update(clock);
+    // the step delta is fixed so box2d isn't affected by framerate
+    world.step(clock.dt/1000f, 10, 10);
+    processContacts();
+  }
+
+  private void paint (Clock clock) {
+    if (showDebugDraw) {
+      debugDraw.canvas.clear();
+      world.drawDebugData();
+      debugLayer.tile().texture().update(debugDraw.canvas.image);
+    }
+    for (Entity e : entities) e.paint(clock);
   }
 }

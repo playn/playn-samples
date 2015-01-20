@@ -22,50 +22,21 @@ public class FakeBlock extends Entity {
   public static String TYPE = "FakeBlock";
 
   public FakeBlock(PeaWorld peaWorld, float x, float y, float angle) {
-    super(peaWorld, x, y, angle);
+    super(peaWorld, peaWorld.getEntityImage("Block-Normal.png"), x, y, angle);
   }
 
-  @Override
-  public void paint(float alpha) {
-  }
-
-  @Override
-  public void update(float delta) {
-  }
-
-  @Override
-  public void setPos(float x, float y) {
+  @Override public void setPos(float x, float y) {
     layer.setTranslation(x, y);
   }
 
-  @Override
-  public void setAngle(float a) {
+  @Override public void setAngle(float a) {
     layer.setRotation(a);
   }
 
-  @Override
-  float getWidth() {
-    return 2.0f;
-  }
+  @Override float getWidth() { return 2.0f; }
+  @Override float getHeight() { return 2.0f; }
 
-  @Override
-  float getHeight() {
-    return 2.0f;
-  }
-
-  @Override
-  public void initPreLoad(PeaWorld peaWorld) {
+  @Override public void initPreLoad(PeaWorld peaWorld) {
     peaWorld.staticLayerBack.add(layer);
   }
-
-  @Override
-  public void initPostLoad(PeaWorld peaWorld) {
-  }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Block-Normal.png");
 }

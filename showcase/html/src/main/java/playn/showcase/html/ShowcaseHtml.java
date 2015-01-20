@@ -15,27 +15,26 @@
  */
 package playn.showcase.html;
 
+import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.Window;
 
-import playn.core.PlayN;
-import playn.html.HtmlGame;
 import playn.html.HtmlPlatform;
 import playn.showcase.core.Showcase;
 
-public class ShowcaseHtml extends HtmlGame {
+public class ShowcaseHtml implements EntryPoint {
 
-  @Override
-  public void start() {
+  @Override public void onModuleLoad () {
     HtmlPlatform.Config config = new HtmlPlatform.Config();
     try {
       config.scaleFactor = Float.parseFloat(Window.Location.getParameter("scale"));
     } catch (Exception e) {} // oh well
-    HtmlPlatform platform = HtmlPlatform.register(config);
-    platform.assets().setPathPrefix("showcase/");
-    PlayN.run(new Showcase(new Showcase.DeviceService() {
+    HtmlPlatform plat = new HtmlPlatform(config);
+    plat.assets().setPathPrefix("showcase/");
+    new Showcase(plat, new Showcase.DeviceService() {
       public String info() {
         return "HTML [userAgent=" + Window.Navigator.getUserAgent() + "]";
       }
-    }));
+    });
+    plat.start();
   }
 }

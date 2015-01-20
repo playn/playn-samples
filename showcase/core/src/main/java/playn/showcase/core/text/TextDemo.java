@@ -15,44 +15,39 @@
  */
 package playn.showcase.core.text;
 
-import playn.core.CanvasImage;
+import react.Closeable;
+
+import playn.core.Canvas;
 import playn.core.Font;
-import playn.core.GroupLayer;
-import playn.core.ImageLayer;
-import playn.core.Layer;
+import playn.core.Graphics;
+import playn.core.TextBlock;
 import playn.core.TextFormat;
 import playn.core.TextLayout;
 import playn.core.TextWrap;
-import playn.core.util.TextBlock;
-import static playn.core.PlayN.*;
+import playn.core.Texture;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
+import playn.scene.Layer;
 
-import playn.showcase.core.Demo;
+import playn.showcase.core.Showcase;
 
-public class TextDemo extends Demo {
-  private GroupLayer base;
+public class TextDemo extends Showcase.Demo {
 
-  @Override
-  public String name() {
-    return "Text";
-  }
+  public TextDemo () { super("Text"); }
 
-  @Override
-  public void init() {
-    base = graphics().createGroupLayer();
-    graphics().rootLayer().add(base);
+  @Override public void create (Showcase game, Closeable.Set onClose) {
+    Graphics gfx = game.plat.graphics();
+    GroupLayer base = new GroupLayer();
+    game.rootLayer.add(base);
+    onClose.add(base);
 
     // draw a soothing flat background
-    CanvasImage bgtile = graphics().createImage(64, 64);
-    bgtile.canvas().setFillColor(0xFFCCCCCC);
-    bgtile.canvas().fillRect(0, 0, 64, 64);
-    bgtile.canvas().setStrokeColor(0xFFFFFFFF);
-    bgtile.canvas().strokeRect(0, 0, 64, 64);
-    bgtile.setRepeat(true, true);
+    Canvas bgtile = gfx.createCanvas(64, 64);
+    bgtile.setFillColor(0xFFCCCCCC).fillRect(0, 0, 64, 64);
+    bgtile.setStrokeColor(0xFFFFFFFF).strokeRect(0, 0, 64, 64);
 
-    ImageLayer bg = graphics().createImageLayer(bgtile);
-    bg.setWidth(graphics().width());
-    bg.setHeight(graphics().height());
-    base.add(bg);
+    ImageLayer bg = new ImageLayer(bgtile.toTexture(Texture.Config.DEFAULT.repeat(true, true)));
+    base.add(bg.setSize(gfx.viewSize));
 
     // add some text to said soothing background
     final float MARGIN = 10;
@@ -61,14 +56,14 @@ public class TextDemo extends Demo {
       float ypos = MARGIN, maxWidth = 0;
       for (Font.Style style : Font.Style.values()) {
         for (float size : new float[] { 12f, 24f, 32f }) {
-          Font font = graphics().createFont(name, style, size);
-          TextFormat format = new TextFormat().withFont(font);
-          TextLayout layout = graphics().layoutText("Hello PlayN World", format);
-          Layer layer = createTextLayer(layout, 0xFF000000);
+          Font font = new Font(name, style, size);
+          TextFormat format = new TextFormat(font);
+          TextLayout layout = gfx.layoutText("Hello PlayN World", format);
+          Layer layer = createTextLayer(game, layout, 0xFF000000);
           layer.setTranslation(xpos, ypos);
           base.add(layer);
-          ypos += layout.height();
-          maxWidth = Math.max(maxWidth, layout.width());
+          ypos += layout.size.height();
+          maxWidth = Math.max(maxWidth, layout.size.width());
           maxYPos = Math.max(ypos, maxYPos);
         }
       }
@@ -78,46 +73,38 @@ public class TextDemo extends Demo {
     // also add some wrapped text
     xpos = MARGIN;
     float ypos = maxYPos + MARGIN;
-    Font font = graphics().createFont("Courier", Font.Style.PLAIN, 16);
+    Font font = new Font("Courier", 16);
     String text = "Text can also be wrapped at a specified width.\n\n" +
       "And wrapped manually at newlines.\nLike this.";
     TextFormat fmt = new TextFormat().withFont(font);
     TextWrap wrap = new TextWrap(200);
-    TextBlock block = new TextBlock(graphics().layoutText(text, fmt, wrap));
-    Layer layer = graphics().createImageLayer(block.toImage(TextBlock.Align.LEFT, 0xFF660000));
+    TextBlock block = new TextBlock(gfx.layoutText(text, fmt, wrap));
+    Layer layer = new ImageLayer(block.toCanvas(gfx, TextBlock.Align.LEFT, 0xFF660000).toTexture());
     layer.setTranslation(xpos, ypos);
     base.add(layer);
     xpos += block.textWidth() + MARGIN;
     ypos += MARGIN;
 
     text = "Wrapped text can be center-justified, if so desired.";
-    block = new TextBlock(graphics().layoutText(text, fmt, wrap));
-    layer = graphics().createImageLayer(block.toImage(TextBlock.Align.CENTER, 0xFF006600));
+    block = new TextBlock(gfx.layoutText(text, fmt, wrap));
+    layer = new ImageLayer(block.toCanvas(gfx, TextBlock.Align.CENTER, 0xFF006600).toTexture());
     layer.setTranslation(xpos, ypos);
     base.add(layer);
     xpos += block.textWidth() + MARGIN;
     ypos += MARGIN;
 
     text = "Or it can be flush to the right, if that's how you like to justify yourself.";
-    block = new TextBlock(graphics().layoutText(text, fmt, wrap));
-    layer = graphics().createImageLayer(block.toImage(TextBlock.Align.RIGHT, 0xFF000066));
+    block = new TextBlock(gfx.layoutText(text, fmt, wrap));
+    layer = new ImageLayer(block.toCanvas(gfx, TextBlock.Align.RIGHT, 0xFF000066).toTexture());
     layer.setTranslation(xpos, ypos);
     base.add(layer);
     xpos += block.textWidth() + MARGIN;
     ypos += MARGIN;
   }
 
-  @Override
-  public void shutdown() {
-    base.destroy();
-    base = null;
-  }
-
-  protected Layer createTextLayer(TextLayout layout, int color) {
-    CanvasImage image = graphics().createImage((int)Math.ceil(layout.width()),
-                                               (int)Math.ceil(layout.height()));
-    image.canvas().setFillColor(color);
-    image.canvas().fillText(layout, 0, 0);
-    return graphics().createImageLayer(image);
+  protected Layer createTextLayer(Showcase game, TextLayout layout, int color) {
+    Canvas canvas = game.plat.graphics().createCanvas(layout.size);
+    canvas.setFillColor(color).fillText(layout, 0, 0);
+    return new ImageLayer(canvas.toTexture());
   }
 }

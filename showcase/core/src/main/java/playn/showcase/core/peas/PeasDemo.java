@@ -15,99 +15,50 @@
  */
 package playn.showcase.core.peas;
 
-import static playn.core.PlayN.assets;
-import static playn.core.PlayN.graphics;
-import static playn.core.PlayN.pointer;
+import react.Closeable;
+import react.Slot;
 
-import playn.core.GroupLayer;
 import playn.core.Image;
-import playn.core.ImageLayer;
-import playn.core.PlayN;
-import playn.core.Pointer;
-import playn.core.util.Callback;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
+import playn.scene.Pointer;
 
-import playn.showcase.core.Demo;
+import playn.showcase.core.Showcase;
 import playn.showcase.core.peas.entities.Pea;
 
-public class PeasDemo extends Demo {
+public class PeasDemo extends Showcase.Demo {
 
   // scale difference between screen space (pixels) and world space (physics).
   public static float physUnitPerScreenUnit = 1 / 26.666667f;
 
-  ImageLayer bgLayer;
+  public PeasDemo () { super("Pea Physics"); }
 
-  // main layer that holds the world. note: this gets scaled to world space
-  GroupLayer worldLayer;
-
-  // main world
-  PeaWorld world = null;
-  boolean worldLoaded = false;
-
-  @Override
-  public String name() {
-    return "Pea Physics";
-  }
-
-  @Override
-  public void init() {
+  @Override public void create (Showcase game, final Closeable.Set onClose) {
     // load and show our background image
-    Image bgImage = assets().getImage("background.png");
-    bgLayer = graphics().createImageLayer(bgImage);
-    bgLayer.setSize(graphics().screenWidth(), graphics().screenHeight());
-    graphics().rootLayer().add(bgLayer);
+    Image bgImage = game.plat.assets().getImage("background.png");
+    final ImageLayer bg = new ImageLayer(bgImage).setSize(game.plat.graphics().viewSize);
+    game.rootLayer.add(bg);
 
     // create our world layer (scaled to "world space")
-    worldLayer = graphics().createGroupLayer();
+    GroupLayer worldLayer = new GroupLayer();
     worldLayer.setScale(1f / physUnitPerScreenUnit);
-    graphics().rootLayer().add(worldLayer);
+    game.rootLayer.add(worldLayer);
+    onClose.add(worldLayer);
 
-    PeaLoader.CreateWorld("peas/levels/level1.json", worldLayer, new Callback<PeaWorld>() {
-      @Override
-      public void onSuccess(PeaWorld resource) {
-        world = resource;
-        worldLoaded = true;
-      }
+    final PeaWorld world = new PeaWorld(game, worldLayer);
 
-      @Override
-      public void onFailure(Throwable err) {
-        PlayN.log().error("Error loading pea world: " + err.getMessage());
-      }
-    });
-
-    // hook up our pointer listener
-    pointer().setListener(new Pointer.Adapter() {
-      @Override
-      public void onPointerStart(Pointer.Event event) {
-        if (worldLoaded) {
-          Pea pea = new Pea(world, world.world, physUnitPerScreenUnit * event.x(),
-                            physUnitPerScreenUnit * event.y(), 0);
-          world.add(pea);
-        }
+    // load a level, and wait for it to be loaded before we wire up input
+    world.loadLevel(game.plat, "peas/levels/level1.json").onSuccess(new Slot<PeaWorld>() {
+      @Override public void onEmit (final PeaWorld world) {
+        // since our background covers the whole screen, listen on it for events
+        bg.events().connect(new Pointer.Listener() {
+          @Override public void onStart(Pointer.Interaction iact) {
+            Pea pea = new Pea(world, world.world, physUnitPerScreenUnit * iact.event.x,
+                              physUnitPerScreenUnit * iact.event.y, 0);
+            world.add(pea);
+          }
+        });
       }
     });
-  }
-
-  @Override
-  public void shutdown() {
-    bgLayer.destroy();
-    bgLayer = null;
-    worldLayer.destroy();
-    worldLayer = null;
-    world = null;
-    worldLoaded = false;
-  }
-
-  @Override
-  public void paint(float alpha) {
-    if (worldLoaded) {
-      world.paint(alpha);
-    }
-  }
-
-  @Override
-  public void update(int delta) {
-    if (worldLoaded) {
-      world.update(delta);
-    }
   }
 }

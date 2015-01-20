@@ -18,76 +18,60 @@ package playn.showcase.core.sprites;
 import java.util.ArrayList;
 import java.util.List;
 
-import playn.core.GroupLayer;
+import pythagoras.f.IDimension;
+
+import react.Closeable;
+import react.Slot;
+
+import playn.core.Clock;
 import playn.core.Image;
-import playn.core.ImageLayer;
-import playn.core.Pointer;
+import playn.core.Platform;
 import playn.core.Sound;
-import static playn.core.PlayN.*;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
+import playn.scene.Pointer;
 
-import playn.showcase.core.Demo;
+import playn.showcase.core.Showcase;
 
-public class SpritesDemo extends Demo {
-  private GroupLayer layer;
-  private List<Pea> peas = new ArrayList<Pea>(0);
-  private Sound ding;
+public class SpritesDemo extends Showcase.Demo {
 
-  @Override
-  public String name() {
-    return "Sprites";
-  }
+  public SpritesDemo () { super("Sprites"); };
 
-  @Override
-  public void init() {
+  @Override public void create (final Showcase game, Closeable.Set onClose) {
     // create a group layer to hold everything
-    layer = graphics().createGroupLayer();
-    graphics().rootLayer().add(layer);
+    final GroupLayer layer = new GroupLayer();
+    game.rootLayer.add(layer);
+    onClose.add(layer);
 
     // load a sound that we'll play when placing sprites
-    ding = assets().getSound("sprites/ding");
+    final Sound ding = game.plat.assets().getSound("sprites/ding");
 
     // create and add background image layer
-    Image bgImage = assets().getImage("background.png");
-    ImageLayer bgLayer = graphics().createImageLayer(bgImage);
-    bgLayer.setSize(graphics().screenWidth(), graphics().screenHeight());
-    layer.add(bgLayer);
+    Image bgImage = game.plat.assets().getImage("background.png");
+    IDimension viewSize = game.plat.graphics().viewSize;
+    ImageLayer bg = new ImageLayer(bgImage).setSize(viewSize);
+    layer.add(bg);
+
+    final List<Pea> peas = new ArrayList<>();
 
     // add a listener for pointer (mouse, touch) input
-    pointer().setListener(new Pointer.Adapter() {
-      @Override
-      public void onPointerEnd(Pointer.Event event) {
-        addPea(event.x(), event.y());
+    bg.events().connect(new Pointer.Listener() {
+      public void onStart (Pointer.Interaction iact) {
+        peas.add(newPea(game.plat, layer, ding, iact.event.x, iact.event.y));
       }
     });
 
-    addPea(graphics().width() / 2, graphics().height() / 2);
+    peas.add(newPea(game.plat, layer, ding, viewSize.width() / 2, viewSize.height() / 2));
+
+    onClose.add(game.paint.connect(new Slot<Clock>() {
+      public void onEmit (Clock clock) {
+        for (Pea pea : peas) pea.update(clock);
+      }
+    }));
   }
 
-  private void addPea(float x, float y) {
-    Pea pea = new Pea(layer, x, y);
-    peas.add(pea);
+  private Pea newPea(Platform plat, GroupLayer layer, Sound ding, float x, float y) {
     ding.play();
-  }
-
-  @Override
-  public void shutdown() {
-    pointer().setListener(null);
-
-    layer.destroy();
-    layer = null;
-  }
-
-  @Override
-  public void paint(float alpha) {
-    // layers automatically paint themselves (and their children). The rootlayer
-    // will paint itself, the background, and the pea group layer automatically
-    // so no need to do anything here!
-  }
-
-  @Override
-  public void update(int delta) {
-    for (Pea pea : peas) {
-      pea.update(delta);
-    }
+    return new Pea(plat, layer, x, y);
   }
 }

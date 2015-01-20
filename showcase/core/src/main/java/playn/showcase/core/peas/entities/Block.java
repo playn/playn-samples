@@ -30,11 +30,15 @@ public class Block extends StaticPhysicsEntity {
   public static String TYPE = "Block";
 
   public Block(final PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, world, x, y, angle);
+    this(peaWorld, world, peaWorld.getEntityImage("Block-Normal.png"), x, y, angle);
   }
 
-  @Override
-  Body initPhysicsBody(World world, float x, float y, float angle) {
+  protected Block(final PeaWorld peaWorld, World world, Image image,
+                  float x, float y, float angle) {
+    super(peaWorld, world, image, x, y, angle);
+  }
+
+  @Override Body initPhysicsBody(World world, float x, float y, float angle) {
     FixtureDef fixtureDef = new FixtureDef();
     BodyDef bodyDef = new BodyDef();
     bodyDef.type = BodyType.STATIC;
@@ -73,11 +77,4 @@ public class Block extends StaticPhysicsEntity {
   public float getTopOffset() {
     return 2.0f / 8f;
   }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Block-Normal.png");
 }

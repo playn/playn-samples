@@ -25,10 +25,10 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.MouseJoint;
 import org.jbox2d.dynamics.joints.MouseJointDef;
 
-import static playn.core.PlayN.graphics;
+import playn.core.Clock;
 import playn.core.Image;
+import playn.scene.ImageLayer;
 
-import playn.core.ImageLayer;
 import playn.showcase.core.peas.PeaWorld;
 
 public class BlockSpring extends Entity implements PhysicsEntity {
@@ -39,7 +39,7 @@ public class BlockSpring extends Entity implements PhysicsEntity {
   Body body;
 
   public BlockSpring(PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, x, y, angle);
+    super(peaWorld, peaWorld.getEntityImage("Block-Spring.png"), x, y, angle);
 
     // add the spring joint
     MouseJointDef mjd = new MouseJointDef();
@@ -55,19 +55,16 @@ public class BlockSpring extends Entity implements PhysicsEntity {
     setAngle(angle);
   }
 
-  @Override
-  public void initPreLoad(final PeaWorld peaWorld) {
-  }
+  @Override public void initPreLoad(final PeaWorld peaWorld) {}
 
-  @Override
-  public void initPostLoad(final PeaWorld peaWorld) {
+  @Override public void initPostLoad(final PeaWorld peaWorld) {
     // set our layer base settings/source
-    layerBase = graphics().createImageLayer(layer.image().subImage(0, 31, 71, 30));
+    layerBase = new ImageLayer(image.region(0, 31, 71, 30));
     layerBase.setOrigin(image.width() / 2f, -30 + image.height() / 2f);
     layerBase.setScale(getWidth() / image.width(), getHeight() / image.height());
 
     // set our top layer settings/source
-    layer.setImage(layer.image().subImage(0, 0, 71, 31));
+    layer.setSource(image.region(0, 0, 71, 31));
     layer.setOrigin(image.width() / 2f, image.height() / 2f);
     layer.setScale(getWidth() / image.width(), getHeight() / image.height());
 
@@ -100,33 +97,17 @@ public class BlockSpring extends Entity implements PhysicsEntity {
     return body;
   }
 
-  @Override
-  float getWidth() {
-    return 2.0f;
-  }
+  @Override float getWidth() { return 2.0f; }
+  @Override float getHeight() { return 2.0f; }
 
-  @Override
-  float getHeight() {
-    return 2.0f;
-  }
+  /** Return the height of the spring's top box. */
+  public float getSpringBoxHeight() { return getHeight() / 2.7f; }
 
-  /**
-   * Return the height of the spring's top box.
-   */
-  public float getSpringBoxHeight() {
-    return getHeight() / 2.7f;
-  }
+  /** Return the size of the offset where the block is slightly lower than where the image is drawn
+    * for a depth effect. */
+  public float getTopOffset() { return 2.0f / 8f; }
 
-  /**
-   * Return the size of the offset where the block is slightly lower than where
-   * the image is drawn for a depth effect
-   */
-  public float getTopOffset() {
-    return 2.0f / 8f;
-  }
-
-  @Override
-  public void setPos(float x, float y) {
+  @Override public void setPos(float x, float y) {
     if (getBody() != null && layerBase != null) {
       getBody().setTransform(new Vec2(x, y), getBody().getAngle());
       mj.setTarget(new Vec2(x, y - 0 * getSpringBoxHeight()));
@@ -135,8 +116,7 @@ public class BlockSpring extends Entity implements PhysicsEntity {
     }
   }
 
-  @Override
-  public void setAngle(float a) {
+  @Override public void setAngle(float a) {
     if (getBody() != null && layerBase != null) {
       getBody().setTransform(getBody().getPosition(), a);
       layerBase.setRotation(a);
@@ -144,21 +124,10 @@ public class BlockSpring extends Entity implements PhysicsEntity {
     }
   }
 
-  @Override
-  public void update(float alpha) {
+  @Override public void update(Clock clock) {
     layer.setTranslation(body.getPosition().x, body.getPosition().y);
     layer.setRotation(body.getAngle());
   }
 
-  @Override
-  public Body getBody() {
-    return body;
-  }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Block-Spring.png");
+  @Override public Body getBody() { return body; }
 }

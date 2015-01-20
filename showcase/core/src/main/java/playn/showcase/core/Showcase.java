@@ -20,11 +20,16 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import playn.core.Game;
+import react.Closeable;
+import react.Signal;
+import react.Slot;
+
 import playn.core.Key;
 import playn.core.Keyboard;
-import playn.core.PlayN;
+import playn.core.Platform;
 import playn.core.Touch;
+import playn.scene.Pointer;
+import playn.scene.SceneGame;
 
 import playn.showcase.core.peas.PeasDemo;
 import playn.showcase.core.snake.SnakeDemo;
@@ -35,19 +40,31 @@ import playn.showcase.core.text.TextDemo;
 /**
  * The main entry point for the showcase "game".
  */
-public class Showcase extends Game.Default {
+public class Showcase extends SceneGame {
 
   private final Set<Key> backKeys = EnumSet.of(Key.ESCAPE, Key.BACK);
-  private final Demo menuDemo = new Menu(this);
+  private final Demo menuDemo = new Menu();
   private Demo activeDemo;
-  private long activeStamp;
+  private Closeable activeHandle = Closeable.Util.NOOP;
+  private int activeStamp;
 
   public interface DeviceService {
     /** Returns info on the device. */
     String info();
   }
 
+  public static abstract class Demo {
+    public final String name;
+    public Demo (String name) {
+      this.name = name;
+    }
+    public abstract void create (Showcase game, Closeable.Set onClose);
+  }
+
   public final DeviceService deviceService;
+
+  /** A signal emitted when the device is rotated. TODO: this should be part of the platform. */
+  public final Signal<Showcase> rotate = Signal.create();
 
   public final List<Demo> demos = new ArrayList<Demo>(); {
     // add your demo here to enable it in the showcase
@@ -58,79 +75,39 @@ public class Showcase extends Game.Default {
     demos.add(new TextDemo());
   }
 
-  public Showcase(DeviceService deviceService) {
-    super(Demo.UPDATE_RATE);
+  public Showcase (Platform plat, DeviceService deviceService) {
+    super(plat, 25); // 25 simulation updates per second
     this.deviceService = deviceService;
-  }
 
-  public void didRotate() {
-    activeDemo.didRotate();
-  }
+    // wire up a layer pointer dispatcher
+    new Pointer(plat, rootLayer, true);
 
-  public boolean shouldExitOnBack() {
-    // the BACK button will get procesesd by Android immediately *after* we move to the main menu,
-    // so we want to debounce things so only if you press back after you're already on the main
-    // menu do we allow the app to exit via the normal back button processing
-    return (activeDemo == menuDemo) &&
-      (System.currentTimeMillis() - activeStamp) > 500L;
-  }
-
-  public void activateDemo(Demo demo) {
-    if (activeDemo != null) {
-      activeDemo.shutdown();
-    }
-    if (activeDemo != demo) {
-      activeDemo = demo;
-      activeDemo.init();
-      activeStamp = System.currentTimeMillis();
-    }
-  }
-
-  @Override
-  public void init() {
-    PlayN.keyboard().setListener(new Keyboard.Adapter() {
-      @Override
-      public void onKeyDown(Keyboard.Event event) {
-        if (backKeys.contains(event.key())) {
-            activateDemo(menuDemo);
-        } else {
-          Keyboard.Listener delegate = activeDemo.keyboardListener();
-          if (delegate != null) {
-            delegate.onKeyDown(event);
-          }
-        }
-      }
-
-      @Override
-      public void onKeyUp(Keyboard.Event event) {
-        Keyboard.Listener delegate = activeDemo.keyboardListener();
-        if (delegate != null) {
-          delegate.onKeyUp(event);
-        }
+    plat.input().keyboardEvents.connect(new Keyboard.KeySlot() {
+      @Override public void onEmit (Keyboard.KeyEvent event) {
+        if (event.down && backKeys.contains(event.key)) activateDemo(menuDemo);
       }
     });
-
-    try {
-      PlayN.touch().setListener(new Touch.Adapter() {
-        public void onTouchStart(Touch.Event[] touches) {
-          if (touches.length > 1)
-            activateDemo(menuDemo);
-        }
-      });
-    } catch (UnsupportedOperationException e) {
-      // no support for touch; no problem
-    }
-
+    plat.input().touchEvents.connect(new Slot<Touch.Event[]>() {
+      public void onEmit (Touch.Event[] touches) {
+        if (touches.length > 1 && touches[0].kind.isStart) activateDemo(menuDemo);
+      }
+    });
     activateDemo(menuDemo);
   }
 
-  @Override
-  public void update(int delta) {
-    activeDemo.update(delta);
+  public boolean shouldExitOnBack () {
+    // the BACK button will get procesesd by Android immediately *after* we move to the main menu,
+    // so we want to debounce things so only if you press back after you're already on the main
+    // menu do we allow the app to exit via the normal back button processing
+    return (activeDemo == menuDemo) && (plat.tick() - activeStamp) > 500L;
   }
 
-  @Override
-  public void paint(float alpha) {
-    activeDemo.paint(alpha);
+  public void activateDemo (Demo demo) {
+    activeHandle = Closeable.Util.close(activeHandle);
+    activeDemo = demo;
+    Closeable.Set onClose = new Closeable.Set();
+    demo.create(this, onClose);
+    activeHandle = onClose;
+    activeStamp = plat.tick();
   }
 }

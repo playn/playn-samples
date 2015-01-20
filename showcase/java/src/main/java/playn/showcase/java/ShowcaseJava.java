@@ -15,16 +15,16 @@
  */
 package playn.showcase.java;
 
-import playn.core.PlayN;
 import playn.java.JavaPlatform;
 import playn.showcase.core.Showcase;
 
 public class ShowcaseJava {
 
   public static void main(String[] args) {
-    JavaPlatform platform = JavaPlatform.register();
-    platform.graphics().registerFont("Museo-300", "text/Museo.ttf");
-    PlayN.run(new Showcase(new Showcase.DeviceService() {
+    JavaPlatform.Config config = new JavaPlatform.Config();
+    JavaPlatform plat = new JavaPlatform(config);
+    plat.graphics().registerFont("Museo-300", "text/Museo.ttf");
+    new Showcase(plat, new Showcase.DeviceService() {
       public String info () {
         Runtime rt = Runtime.getRuntime();
         return "Java [vers=" + System.getProperty("java.version") +
@@ -34,6 +34,7 @@ public class ShowcaseJava {
           ", freemem=" + (rt.freeMemory()/1024) + "/" + (rt.totalMemory()/1024) + "k" +
           ", maxmem=" + (rt.maxMemory()/1024) + "k]";
       }
-    }));
+    });
+    plat.start();
   }
 }

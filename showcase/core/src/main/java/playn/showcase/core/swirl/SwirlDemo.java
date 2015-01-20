@@ -15,44 +15,38 @@
  */
 package playn.showcase.core.swirl;
 
-import static playn.core.PlayN.assets;
-import static playn.core.PlayN.graphics;
-import static playn.core.PlayN.pointer;
-import playn.core.GroupLayer;
+import pythagoras.f.FloatMath;
+
+import react.Closeable;
+import react.Slot;
+
+import playn.core.Clock;
 import playn.core.Image;
-import playn.core.ImageLayer;
 import playn.core.Pointer;
-import playn.showcase.core.Demo;
+import playn.scene.GroupLayer;
+import playn.scene.ImageLayer;
 
-public class SwirlDemo extends Demo {
+import playn.showcase.core.Showcase;
 
-  GroupLayer groupLayer;
-  ImageLayer bgLayer;
-  ImageLayer layer0, layer1, layer2, layer3;
+public class SwirlDemo extends Showcase.Demo {
 
-  @Override
-  public String name() {
-    return "Swirl";
-  }
+  public SwirlDemo () { super("Swirl"); }
 
-  @Override
-  public void init() {
-    Image background = assets().getImage("background.png");
-    bgLayer = graphics().createImageLayer(background);
-    bgLayer.setSize(graphics().screenWidth(), graphics().screenHeight());
-    bgLayer.setDepth(-1);
-    graphics().rootLayer().add(bgLayer);
+  @Override public void create (Showcase game, Closeable.Set onClose) {
+    Image bg = game.plat.assets().getImage("background.png");
+    game.rootLayer.add(new ImageLayer(bg).setSize(game.plat.graphics().viewSize).setDepth(-1));
 
-    groupLayer = graphics().createGroupLayer();
+    final GroupLayer groupLayer = new GroupLayer();
     groupLayer.setOrigin(128, 128);
     groupLayer.transform().translate(256, 256);
-    graphics().rootLayer().add(groupLayer);
+    game.rootLayer.add(groupLayer);
+    onClose.add(groupLayer);
 
-    Image catgirl = assets().getImage("swirl/girlcat.png");
-    layer0 = graphics().createImageLayer(catgirl);
-    layer1 = graphics().createImageLayer(catgirl);
-    layer2 = graphics().createImageLayer(catgirl);
-    layer3 = graphics().createImageLayer(catgirl);
+    Image catgirl = game.plat.assets().getImage("swirl/girlcat.png");
+    final ImageLayer layer0 = new ImageLayer(catgirl);
+    final ImageLayer layer1 = new ImageLayer(catgirl);
+    final ImageLayer layer2 = new ImageLayer(catgirl);
+    final ImageLayer layer3 = new ImageLayer(catgirl);
 
     groupLayer.add(layer0);
     groupLayer.add(layer1);
@@ -68,40 +62,25 @@ public class SwirlDemo extends Demo {
     layer1.transform().translate(256, 0);
     layer2.transform().translate(256, 256);
     layer3.transform().translate(0, 256);
-  }
 
-  @Override
-  public void shutdown() {
-    groupLayer.destroy();
-    groupLayer = null;
-    bgLayer.destroy();
-    bgLayer = null;
-    layer0 = layer1 = layer2 = layer3 = null;
-  }
+    onClose.add(game.paint.connect(new Slot<Clock>() {
+      public void onEmit (Clock clock) {
+        float angle = clock.tick * FloatMath.PI / 5000;
+        float scale = FloatMath.sin(angle) + 0.5f;
 
-  int elapsed;
+        layer0.transform().setRotation(angle);
+        layer1.transform().setRotation(angle);
+        layer2.transform().setRotation(angle);
+        layer3.transform().setRotation(angle);
 
-  @Override
-  public void update(int delta) {
-    elapsed += delta;
-  }
+        layer0.transform().setUniformScale(scale);
+        layer1.transform().setUniformScale(scale);
+        layer2.transform().setUniformScale(scale);
+        layer3.transform().setUniformScale(scale);
 
-  @Override
-  public void paint(float alpha) {
-    float angle = (elapsed + UPDATE_RATE*alpha) * (float) Math.PI / 5000;
-    float scale = (float) Math.sin(angle) + 0.5f;
-
-    layer0.transform().setRotation(angle);
-    layer1.transform().setRotation(angle);
-    layer2.transform().setRotation(angle);
-    layer3.transform().setRotation(angle);
-
-    layer0.transform().setUniformScale(scale);
-    layer1.transform().setUniformScale(scale);
-    layer2.transform().setUniformScale(scale);
-    layer3.transform().setUniformScale(scale);
-
-    groupLayer.transform().setRotation(angle);
-    groupLayer.transform().setUniformScale(scale);
+        groupLayer.transform().setRotation(angle);
+        groupLayer.transform().setUniformScale(scale);
+      }
+    }));
   }
 }

@@ -30,7 +30,7 @@ public class BlockGel extends Block {
   public static String TYPE = "BlockGel";
 
   public BlockGel(PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, world, x, y, angle);
+    super(peaWorld, world, peaWorld.getEntityImage("Block-Gel.png"), x, y, angle);
   }
 
   @Override
@@ -55,11 +55,4 @@ public class BlockGel extends Block {
     body.setTransform(new Vec2(x, y), angle);
     return body;
   }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Block-Gel.png");
 }

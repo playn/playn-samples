@@ -23,6 +23,7 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
+import playn.core.Clock;
 import playn.core.Image;
 import playn.showcase.core.peas.PeaWorld;
 
@@ -35,11 +36,10 @@ public class Portal extends StaticPhysicsEntity implements PhysicsEntity.HasCont
   private static int hysteresis = 0;
 
   public Portal(PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, world, x, y, angle);
+    super(peaWorld, world, peaWorld.getEntityImage("teleport.png"), x, y, angle);
   }
 
-  @Override
-  Body initPhysicsBody(World world, float x, float y, float angle) {
+  @Override Body initPhysicsBody(World world, float x, float y, float angle) {
     FixtureDef fixtureDef = new FixtureDef();
     BodyDef bodyDef = new BodyDef();
     bodyDef.type = BodyType.STATIC;
@@ -64,46 +64,27 @@ public class Portal extends StaticPhysicsEntity implements PhysicsEntity.HasCont
     return body;
   }
 
-  @Override
-  public void initPostLoad(final PeaWorld peaWorld) {
+  @Override public void initPostLoad(final PeaWorld peaWorld) {
     layer.setRotation(0f); // total hack so we can portal horizontally but not rotate the image
     peaWorld.staticLayerFront.add(layer);
   }
 
-  @Override
-  float getWidth() {
-    return 2.0f;
-  }
-
-  @Override
-  float getHeight() {
-    return 2.0f;
-  }
+  @Override float getWidth() { return 2.0f; }
+  @Override float getHeight() { return 2.0f; }
 
   /**
    * Return the size of the offset where the block is slightly lower than where
    * the image is drawn for a depth effect
    */
-  public float getTopOffset() {
-    return 2.0f / 8f;
-  }
+  public float getTopOffset() { return 2.0f / 8f; }
 
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  @Override
-  public void update(float delta) {
-    super.update(delta);
-    if (hysteresis > 0) {
-      hysteresis--;
-    }
+  @Override public void update (Clock clock) {
+    super.update(clock);
+    if (hysteresis > 0) hysteresis--;
   }
 
   // Handle portal event
-  @Override
-  public void contact(PhysicsEntity contactEntity) {
+  @Override public void contact(PhysicsEntity contactEntity) {
     // keep a counter to prevent another portal event until a timeout
     if (hysteresis > 0) {
       return; // do not perform another portal event until hysteresis frames have passed
@@ -138,6 +119,4 @@ public class Portal extends StaticPhysicsEntity implements PhysicsEntity.HasCont
     ret.y = vec.x * sTheta + vec.y * cTheta;
     return ret;
   }
-
-  private static Image image = loadImage("teleport.png");
 }

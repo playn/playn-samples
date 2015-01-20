@@ -15,11 +15,12 @@
  */
 package playn.showcase.core;
 
-import playn.core.GroupLayer;
+import playn.core.Clock;
 import playn.core.Key;
 import playn.core.Keyboard;
-import playn.core.util.Clock;
+import playn.scene.GroupLayer;
 
+import react.Closeable;
 import react.UnitSlot;
 
 import tripleplay.ui.Background;
@@ -32,50 +33,26 @@ import tripleplay.ui.SimpleStyles;
 import tripleplay.ui.Style;
 import tripleplay.ui.layout.AxisLayout;
 
-import static playn.core.PlayN.*;
-
 /**
  * A demo that displays a menu of the available demos.
  */
-public class Menu extends Demo
-{
-  private final Keyboard.Listener keyListener = new Keyboard.Adapter() {
-    @Override
-    public void onKeyDown(Keyboard.Event event) {
-      // this is a bit hacky, but serves our purpose
-      int demoIndex = event.key().ordinal() - Key.K1.ordinal();
-      if (demoIndex >= 0 && demoIndex < showcase.demos.size()) {
-        showcase.activateDemo(showcase.demos.get(demoIndex));
-      }
-    }
-  };
+public class Menu extends Showcase.Demo {
 
-  private final Showcase showcase;
+  public Menu () { super("Menu"); }
 
-  private Interface iface;
-  private Root root;
-  private GroupLayer layer;
-
-  public Menu (Showcase showcase) {
-    this.showcase = showcase;
-  }
-
-  @Override
-  public String name() {
-    return "Menu";
-  }
-
-  @Override
-  public void init() {
-    layer = graphics().createGroupLayer();
-    graphics().rootLayer().add(layer);
+  @Override public void create (final Showcase game, Closeable.Set onClose) {
+    GroupLayer layer = new GroupLayer();
+    game.rootLayer.add(layer);
+    onClose.add(layer);
 
     // create our UI manager and configure it to process pointer events
-    iface = new Interface();
+    Interface iface = new Interface(game.plat, game.paint);
+    onClose.add(iface);
 
     // create our demo interface
-    root = iface.createRoot(AxisLayout.vertical().gap(15), SimpleStyles.newSheet());
-    root.setSize(graphics().width(), graphics().height());
+    final Root root = iface.createRoot(AxisLayout.vertical().gap(15),
+                                       SimpleStyles.newSheet(game.plat.graphics()));
+    root.setSize(game.plat.graphics().viewSize);
     root.addStyles(Style.BACKGROUND.is(Background.solid(0xFF99CCFF).inset(5)));
     layer.add(root.layer);
 
@@ -84,60 +61,34 @@ public class Menu extends Demo
              buttons = new Group(AxisLayout.vertical().offStretch()),
              new Label("ESC/BACK key or two-finger tap returns to menu from demo").addStyles(
                Style.TEXT_WRAP.is(true)),
-             new Label("(renderer: " + graphics().getClass().getSimpleName() + " " +
-                         graphics().screenWidth() + "x" + graphics().screenHeight() + ")"),
-             new Label("(device: " + showcase.deviceService.info() + ")").addStyles(
+             new Label("(renderer: " + game.plat.graphics().getClass().getSimpleName() + " " +
+                       game.plat.graphics().viewSize + ")"),
+             new Label("(device: " + game.deviceService.info() + ")").addStyles(
                Style.TEXT_WRAP.is(true)));
 
     int key = 1;
-    for (final Demo demo : showcase.demos) {
-      Button button = new Button(key++ + " - " + demo.name());
+    for (final Showcase.Demo demo : game.demos) {
+      Button button = new Button(key++ + " - " + demo.name);
       buttons.add(button);
       button.clicked().connect(new UnitSlot() {
-        @Override
-        public void onEmit() {
-          showcase.activateDemo(demo);
-        }
+        @Override public void onEmit() { game.activateDemo(demo); }
       });
     }
-  }
 
-  @Override
-  public void didRotate () {
-    root.setSize(graphics().width(), graphics().height());
-  }
+    // wire up keyboard shortcuts
+    onClose.add(game.plat.input().keyboardEvents.connect(new Keyboard.KeySlot() {
+      public void onEmit (Keyboard.KeyEvent event) {
+        // this is a bit hacky, but serves our purpose
+        int demoIndex = event.key.ordinal() - Key.K1.ordinal();
+        if (demoIndex >= 0 && demoIndex < game.demos.size()) {
+          game.activateDemo(game.demos.get(demoIndex));
+        }
+      }
+    }));
 
-  @Override
-  public void shutdown() {
-    if (iface != null) {
-      pointer().setListener(null);
-      root = null;
-      iface = null;
-    }
-    layer.destroy();
-    layer = null;
+    // resize our root if the view rotates
+    onClose.add(game.rotate.connect(new UnitSlot() {
+      public void onEmit () { root.setSize(game.plat.graphics().viewSize); }
+    }));
   }
-
-  @Override
-  public void update(int delta) {
-    _clock.update(delta);
-    if (iface != null) {
-      iface.update(delta);
-    }
-  }
-
-  @Override
-  public void paint(float alpha) {
-    _clock.paint(alpha);
-    if (iface != null) {
-      iface.paint(_clock);
-    }
-  }
-
-  @Override
-  public Keyboard.Listener keyboardListener() {
-    return keyListener;
-  }
-
-  protected final Clock.Source _clock = new Clock.Source(UPDATE_RATE);
 }

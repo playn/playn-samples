@@ -30,7 +30,8 @@ public class Pea extends DynamicPhysicsEntity {
   public static String TYPE = "Pea";
 
   public Pea(PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, world, x, y, angle);
+    super(peaWorld, world, peaWorld.getEntityImage("pea.png"), x, y, angle);
+    // peaWorld.getEntityImage("chrome.png");
   }
 
   @Override
@@ -68,13 +69,4 @@ public class Pea extends DynamicPhysicsEntity {
     //return 1.50f;
     return 0.5f;
   }
-
-  @Override
-  public Image getImage() {
-    return image;
-    // return chrome;
-  }
-
-  private static Image image = loadImage("pea.png");
-  // private static Image chrome = loadImage("chrome.png");
 }

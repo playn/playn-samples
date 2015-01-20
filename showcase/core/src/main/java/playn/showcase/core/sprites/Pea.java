@@ -15,23 +15,25 @@
  */
 package playn.showcase.core.sprites;
 
-import static playn.core.PlayN.log;
+import react.Slot;
 
-import playn.core.GroupLayer;
-import playn.core.util.Callback;
+import playn.core.Clock;
+import playn.core.Platform;
+import playn.scene.GroupLayer;
 
 public class Pea {
+
   public static String IMAGE = "sprites/peasprites.png";
   public static String JSON = "sprites/peasprite.json";
   public static String JSON_WITH_IMAGE = "sprites/peasprite2.json";
+
   private Sprite sprite;
   private int spriteIndex = 0;
-  private float angle;
   private boolean hasLoaded = false; // set to true when resources have loaded and we can update
 
-  public Pea(final GroupLayer peaLayer, final float x, final float y) {
+  public Pea (Platform plat, final GroupLayer peaLayer, final float x, final float y) {
     // Sprite method #1: use a sprite image and json data describing the sprites
-    sprite = SpriteLoader.getSprite(IMAGE, JSON);
+    sprite = SpriteLoader.getSprite(plat, IMAGE, JSON);
 
     // Sprite method #2: use json data describing the sprites and containing the image urls
     // sprite = SpriteLoader.getSprite(JSON_WITH_IMAGE);
@@ -39,31 +41,24 @@ public class Pea {
     // Add a callback for when the image loads.
     // This is necessary because we can't use the width/height (to center the
     // image) until after the image has been loaded
-    sprite.addCallback(new Callback<Sprite>() {
-      @Override
-      public void onSuccess(Sprite sprite) {
+    sprite.state.onSuccess(new Slot<Sprite>() {
+      @Override public void onEmit(Sprite sprite) {
         sprite.setSprite(spriteIndex);
-        sprite.layer().setOrigin(sprite.width() / 2f, sprite.height() / 2f);
-        sprite.layer().setTranslation(x, y);
-        peaLayer.add(sprite.layer());
+        sprite.layer.setOrigin(sprite.width() / 2f, sprite.height() / 2f);
+        sprite.layer.setTranslation(x, y);
+        peaLayer.add(sprite.layer);
         hasLoaded = true;
-      }
-
-      @Override
-      public void onFailure(Throwable err) {
-        log().error("Error loading image!", err);
       }
     });
   }
 
-  public void update(int delta) {
+  public void update(Clock clock) {
     if (hasLoaded) {
       if (Math.random() > 0.95) {
         spriteIndex = (spriteIndex + 1) % sprite.numSprites();
         sprite.setSprite(spriteIndex);
       }
-      angle += delta;
-      sprite.layer().setRotation(angle);
+      sprite.layer.setRotation(clock.tick/1000f);
     }
   }
 }

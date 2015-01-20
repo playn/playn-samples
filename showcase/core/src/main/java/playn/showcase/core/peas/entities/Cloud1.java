@@ -15,6 +15,7 @@
  */
 package playn.showcase.core.peas.entities;
 
+import playn.core.Clock;
 import playn.core.Image;
 import playn.showcase.core.peas.PeaWorld;
 
@@ -22,14 +23,17 @@ public class Cloud1 extends Entity {
   public static String TYPE = "Cloud1";
 
   public Cloud1(PeaWorld peaWorld) {
-    super(peaWorld, 0, 0, 0);
+    this(peaWorld, peaWorld.getEntityImage("Cloud1.png"));
+  }
+
+  protected Cloud1(PeaWorld peaWorld, Image image) {
+    super(peaWorld, image, 0, 0, 0);
     y = (float) (Math.random() * getMaximumHeight());
     x = (float) (Math.random() * getMaximumWidth());
   }
 
-  @Override
-  public void update(float delta) {
-    x += delta * getVelocity();
+  @Override public void update (Clock clock) {
+    x += clock.dt * getVelocity();
     layer.setTranslation(x, y);
 
     if (x > getWidth() + getMaximumWidth()) {
@@ -38,48 +42,21 @@ public class Cloud1 extends Entity {
     }
   }
 
-  @Override
-  float getWidth() {
-    return 0.3f * 26.0f;
+  @Override public void initPreLoad(PeaWorld peaWorld) {
+    peaWorld.dynamicLayer.add(layer);
   }
+  @Override public void initPostLoad(PeaWorld peaWorld) {}
 
-  @Override
-  float getHeight() {
-    return 0.3f * 18.0f;
-  }
-
-  float getMaximumWidth() {
-    return 24.0f;
-  }
-
-  float getMaximumHeight() {
-    return 3.0f;
-  }
-
-  float getVelocity() {
-    return 0.003f;
-  }
-
-  @Override
-  public void setPos(float x, float y) {
+  @Override public void setPos(float x, float y) {
     this.x = x;
     this.y = y;
     layer.setTranslation(x, y);
   }
 
-  @Override
-  public void initPreLoad(PeaWorld peaWorld) {
-    peaWorld.dynamicLayer.add(layer);
-  }
+  float getMaximumWidth() { return 24.0f; }
+  float getMaximumHeight() { return 3.0f; }
+  float getVelocity() { return 0.003f; }
 
-  @Override
-  public void initPostLoad(PeaWorld peaWorld) {
-  }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Cloud1.png");
+  @Override float getWidth() { return 0.3f * 26.0f; }
+  @Override float getHeight() { return 0.3f * 18.0f; }
 }

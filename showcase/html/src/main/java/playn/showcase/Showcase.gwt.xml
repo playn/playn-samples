@@ -14,7 +14,7 @@
  * limitations under the License.
 -->
 <module rename-to='showcase'>
-  <inherits name='playn.PlayN'/>
+  <inherits name='playn.Scene'/>
   <!-- for the peas sample -->
   <inherits name="org.jbox2d.JBox2D" />
   <!-- for the menu UI -->

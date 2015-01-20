@@ -22,18 +22,8 @@ public class Cloud3 extends Cloud1 {
   public static String TYPE = "Cloud3";
 
   public Cloud3(PeaWorld peaWorld) {
-    super(peaWorld);
+    super(peaWorld, peaWorld.getEntityImage("Cloud3.png"));
   }
 
-  @Override
-  float getVelocity() {
-    return 0.002f;
-  }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Cloud3.png");
+  @Override float getVelocity() { return 0.002f; }
 }

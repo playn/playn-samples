@@ -13,6 +13,7 @@
  */
 package playn.showcase.robovm;
 
+import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.NSAutoreleasePool;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationDelegateAdapter;
@@ -20,6 +21,8 @@ import org.robovm.apple.uikit.UIApplicationLaunchOptions;
 import org.robovm.apple.uikit.UIDevice;
 import org.robovm.apple.uikit.UIInterfaceOrientation;
 import org.robovm.apple.uikit.UIInterfaceOrientationMask;
+import org.robovm.apple.uikit.UIScreen;
+import org.robovm.apple.uikit.UIWindow;
 
 import playn.robovm.RoboPlatform;
 import playn.showcase.core.Showcase;
@@ -28,15 +31,17 @@ public class ShowcaseRoboVM extends UIApplicationDelegateAdapter {
 
   @Override
   public boolean didFinishLaunching (UIApplication app, UIApplicationLaunchOptions launchOpts) {
+    // create a full-screen window
+    CGRect bounds = UIScreen.getMainScreen().getBounds();
+    UIWindow window = new UIWindow(bounds);
 
+    // create and initialize the PlayN platform
     RoboPlatform.Config config = new RoboPlatform.Config();
     config.orients = UIInterfaceOrientationMask.All;
-    RoboPlatform pf = RoboPlatform.register(app, config);
-    // Retain platform object until the application is deallocated. Prevents Java GC from
-    // collecting things too early.
+    RoboPlatform pf = RoboPlatform.create(window, config);
     addStrongRef(pf);
 
-    final Showcase game = new Showcase(new Showcase.DeviceService() {
+    final Showcase game = new Showcase(pf, new Showcase.DeviceService() {
                           public String info () {
                             UIDevice device = UIDevice.getCurrentDevice();
                             return "iOS [model=" + device.getModel() +
@@ -48,10 +53,13 @@ public class ShowcaseRoboVM extends UIApplicationDelegateAdapter {
     pf.setListener(new RoboPlatform.OrientationListener() {
       public void willRotate(UIInterfaceOrientation toOrient, double duration) {}
       public void didRotate(UIInterfaceOrientation orientation) {
-        game.didRotate();
+        game.rotate.emit(game);
       }
     });
-    pf.run(game);
+
+    // make our main window visible (the platform starts when the window becomes viz)
+    window.makeKeyAndVisible();
+    addStrongRef(window);
     return true;
   }
 

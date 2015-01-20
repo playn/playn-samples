@@ -30,7 +30,7 @@ public class BlockRightRamp extends Block {
   public static String TYPE = "BlockRightRamp";
 
   public BlockRightRamp(PeaWorld peaWorld, World world, float x, float y, float angle) {
-    super(peaWorld, world, x, y, angle);
+    super(peaWorld, world, peaWorld.getEntityImage("Block-RightRamp.png"), x, y, angle);
   }
 
   @Override
@@ -54,11 +54,4 @@ public class BlockRightRamp extends Block {
     body.setTransform(new Vec2(x, y), angle);
     return body;
   }
-
-  @Override
-  public Image getImage() {
-    return image;
-  }
-
-  private static Image image = loadImage("Block-RightRamp.png");
 }

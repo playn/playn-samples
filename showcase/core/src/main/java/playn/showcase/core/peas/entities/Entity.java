@@ -15,29 +15,31 @@
  */
 package playn.showcase.core.peas.entities;
 
-import static playn.core.PlayN.assets;
-import static playn.core.PlayN.graphics;
-import static playn.core.PlayN.log;
+import react.Slot;
 
+import playn.core.Clock;
 import playn.core.Image;
-import playn.core.ImageLayer;
-import playn.core.util.Callback;
+import playn.scene.ImageLayer;
 
 import playn.showcase.core.peas.PeaWorld;
 
 public abstract class Entity {
-  final ImageLayer layer;
+
+  final PeaWorld world;
+  public final ImageLayer layer;
+  public final Image image;
   float x, y, angle;
 
-  public Entity(final PeaWorld peaWorld, float px, float py, float pangle) {
+  public Entity(final PeaWorld peaWorld, Image image, float px, float py, float pangle) {
+    this.world = peaWorld;
+    this.image = image;
     this.x = px;
     this.y = py;
     this.angle = pangle;
-    layer = graphics().createImageLayer(getImage());
+    layer = new ImageLayer(image);
     initPreLoad(peaWorld);
-    getImage().addCallback(new Callback<Image>() {
-      @Override
-      public void onSuccess(Image image) {
+    image.state.onSuccess(new Slot<Image>() {
+      @Override public void onEmit(Image image) {
         // since the image is loaded, we can use its width and height
         layer.setOrigin(image.width() / 2f, image.height() / 2f);
         layer.setScale(getWidth() / image.width(), getHeight() / image.height());
@@ -45,33 +47,21 @@ public abstract class Entity {
         layer.setRotation(angle);
         initPostLoad(peaWorld);
       }
-
-      @Override
-      public void onFailure(Throwable err) {
-        log().error("Error loading image: " + err.getMessage());
-      }
     });
   }
 
   /**
    * Perform pre-image load initialization (e.g., attaching to PeaWorld layers).
-   *
-   * @param peaWorld
    */
-  public abstract void initPreLoad(final PeaWorld peaWorld);
+  public void initPreLoad (PeaWorld peaWorld) {}
 
   /**
    * Perform post-image load initialization (e.g., attaching to PeaWorld layers).
-   *
-   * @param peaWorld
    */
-  public abstract void initPostLoad(final PeaWorld peaWorld);
+  public void initPostLoad (PeaWorld peaWorld) {}
 
-  public void paint(float alpha) {
-  }
-
-  public void update(float delta) {
-  }
+  public void update (Clock clock) {}
+  public void paint (Clock clock) {}
 
   public void setPos(float x, float y) {
     layer.setTranslation(x, y);
@@ -82,12 +72,5 @@ public abstract class Entity {
   }
 
   abstract float getWidth();
-
   abstract float getHeight();
-
-  public abstract Image getImage();
-
-  protected static Image loadImage(String name) {
-    return assets().getImage("peas/images/" + name);
-  }
 }
