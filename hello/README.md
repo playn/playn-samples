@@ -14,8 +14,8 @@ cd playn-samples/hello
 mvn test -Pjava
 ```
 
-For more complex instructions, see the [development environment] documentation on the PlayN
-website.
+For setting up in an IDE or building for Android, iOS and HTML, see the [development environment]
+documentation on the PlayN website.
 
 [Maven]: http://maven.apache.org/
 [development environment]: http://playn.github.io/docs/setup.html
