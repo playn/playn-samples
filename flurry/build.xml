@@ -42,7 +42,7 @@
 
   <target name="-prepare-java" depends="-prepare">
     <artifact:dependencies pathId="java-extras.classpath">
-      <dependency groupId="com.googlecode.playn" artifactId="playn-java"
+      <dependency groupId="io.playn" artifactId="playn-java"
                   version="${pom.properties.playn.version}"/>
     </artifact:dependencies>
     <path id="java.classpath">
@@ -53,9 +53,9 @@
 
   <target name="-prepare-html" depends="-prepare">
     <artifact:dependencies pathId="html-extras.classpath">
-      <dependency groupId="com.googlecode.playn" artifactId="playn-html"
+      <dependency groupId="io.playn" artifactId="playn-html"
                   version="${pom.properties.playn.version}"/>
-      <dependency groupId="com.googlecode.playn" artifactId="playn-html"
+      <dependency groupId="io.playn" artifactId="playn-html"
                   version="${pom.properties.playn.version}" classifier="sources"/>
       <dependency groupId="com.google.gwt" artifactId="gwt-dev"
                   version="${pom.properties.gwt.version}"/>
@@ -68,7 +68,7 @@
 
   <target name="-prepare-android" depends="-prepare">
     <artifact:dependencies pathId="android-extras.classpath">
-      <dependency groupId="com.googlecode.playn" artifactId="playn-android"
+      <dependency groupId="io.playn" artifactId="playn-android"
                   version="${pom.properties.playn.version}"/>
       <dependency groupId="com.google.android" artifactId="android"
                   version="${pom.properties.android.version}"/>
