@@ -7,7 +7,7 @@ This sample program displays a little character walking around in an environment
 Using [Maven], do:
 
 ```
-cd playn-samples/hello
+cd playn-samples/cute
 mvn test -Pjava
 ```
 

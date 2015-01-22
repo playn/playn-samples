@@ -8,7 +8,7 @@ with [JBox2D] for physics simulation.
 Using [Maven], do:
 
 ```
-cd playn-samples/hello
+cd playn-samples/showcase
 mvn test -Pjava
 ```
 
