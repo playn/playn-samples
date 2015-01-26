@@ -35,14 +35,8 @@ public class HelloGame extends SceneGame {
     public Pea(final GroupLayer peaLayer, float x, float y) {
       Image image = plat.assets().getImage("images/pea.png");
       final ImageLayer layer = new ImageLayer(image);
+      layer.setOrigin(ImageLayer.Origin.CENTER);
       peaLayer.addAt(layer, x, y);
-
-      // once the image loads, set our origin to the image center
-      image.state.onSuccess(new Slot<Image>() {
-        @Override public void onEmit(Image image) {
-          layer.setOrigin(image.width() / 2f, image.height() / 2f);
-        }
-      });
 
       // connect to the paint signal to animate our rotation
       paint.connect(new Slot<Clock>() {
