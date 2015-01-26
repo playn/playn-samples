@@ -20,6 +20,7 @@ import react.Slot;
 import playn.core.Clock;
 import playn.core.Platform;
 import playn.scene.GroupLayer;
+import playn.scene.Layer;
 
 public class Pea {
 
@@ -31,9 +32,11 @@ public class Pea {
   private int spriteIndex = 0;
   private boolean hasLoaded = false; // set to true when resources have loaded and we can update
 
-  public Pea (Platform plat, final GroupLayer peaLayer, final float x, final float y) {
+  public Pea (Platform plat, final GroupLayer peaLayer, float x, float y) {
     // Sprite method #1: use a sprite image and json data describing the sprites
     sprite = SpriteLoader.getSprite(plat, IMAGE, JSON);
+    sprite.layer.setOrigin(Layer.Origin.CENTER);
+    sprite.layer.setTranslation(x, y);
 
     // Sprite method #2: use json data describing the sprites and containing the image urls
     // sprite = SpriteLoader.getSprite(JSON_WITH_IMAGE);
@@ -44,8 +47,6 @@ public class Pea {
     sprite.state.onSuccess(new Slot<Sprite>() {
       @Override public void onEmit(Sprite sprite) {
         sprite.setSprite(spriteIndex);
-        sprite.layer.setOrigin(sprite.width() / 2f, sprite.height() / 2f);
-        sprite.layer.setTranslation(x, y);
         peaLayer.add(sprite.layer);
         hasLoaded = true;
       }

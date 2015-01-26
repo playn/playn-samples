@@ -37,14 +37,14 @@ public abstract class Entity {
     this.y = py;
     this.angle = pangle;
     layer = new ImageLayer(image);
+    layer.setOrigin(ImageLayer.Origin.CENTER);
+    layer.setTranslation(px, py);
+    layer.setRotation(pangle);
     initPreLoad(peaWorld);
     image.state.onSuccess(new Slot<Image>() {
       @Override public void onEmit(Image image) {
-        // since the image is loaded, we can use its width and height
-        layer.setOrigin(image.width() / 2f, image.height() / 2f);
+        // now that the image is loaded, we can use its width and height
         layer.setScale(getWidth() / image.width(), getHeight() / image.height());
-        layer.setTranslation(x, y);
-        layer.setRotation(angle);
         initPostLoad(peaWorld);
       }
     });
