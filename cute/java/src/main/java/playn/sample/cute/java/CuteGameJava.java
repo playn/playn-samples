@@ -15,14 +15,17 @@
  */
 package playn.sample.cute.java;
 
-import playn.core.PlayN;
 import playn.java.JavaPlatform;
 import playn.sample.cute.core.CuteGame;
 
 public class CuteGameJava {
 
   public static void main(String[] args) {
-    JavaPlatform platform = JavaPlatform.register();
-    PlayN.run(new CuteGame());
+    JavaPlatform.Config config = new JavaPlatform.Config();
+    config.width = 800;
+    config.height = 600;
+    JavaPlatform pf = new JavaPlatform(config);
+    new CuteGame(pf);
+    pf.start();
   }
 }

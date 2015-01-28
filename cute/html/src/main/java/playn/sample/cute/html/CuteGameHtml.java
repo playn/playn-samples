@@ -15,17 +15,18 @@
  */
 package playn.sample.cute.html;
 
-import playn.core.PlayN;
-import playn.html.HtmlGame;
+import com.google.gwt.core.client.EntryPoint;
+
 import playn.html.HtmlPlatform;
 import playn.sample.cute.core.CuteGame;
 
-public class CuteGameHtml extends HtmlGame {
+public class CuteGameHtml implements EntryPoint {
 
-  @Override
-  public void start() {
-    HtmlPlatform platform = HtmlPlatform.register();
+  @Override public void onModuleLoad () {
+    HtmlPlatform.Config config = new HtmlPlatform.Config();
+    HtmlPlatform platform = new HtmlPlatform(config);
     platform.assets().setPathPrefix("cutegame/");
-    PlayN.run(new CuteGame());
+    new CuteGame(platform);
+    platform.start();
   }
 }

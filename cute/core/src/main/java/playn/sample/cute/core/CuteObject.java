@@ -15,12 +15,12 @@
  */
 package playn.sample.cute.core;
 
-import playn.core.Image;
+import playn.core.Tile;
 import playn.sample.cute.core.CuteWorld.Stack;
 
 public class CuteObject {
 
-  public Image img;
+  public Tile tile;
   public double oldx, oldy, oldz;
   public double x, y, z;
   public double vx, vy, vz;
@@ -31,8 +31,8 @@ public class CuteObject {
   int lastUpdated;
   boolean resting;
 
-  public CuteObject(Image img) {
-    this.img = img;
+  public CuteObject(Tile tile) {
+    this.tile = tile;
   }
 
   public boolean isResting() {

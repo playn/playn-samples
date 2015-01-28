@@ -15,16 +15,15 @@
  */
 package playn.sample.cute.core;
 
-import static playn.core.PlayN.*;
-
-import static java.lang.Math.max;
-
-import playn.core.Image;
-import playn.core.Json;
-import playn.core.Surface;
-
 import java.util.ArrayList;
 import java.util.List;
+import react.UnitSlot;
+import static java.lang.Math.max;
+
+import playn.core.*;
+import pythagoras.f.IDimension;
+import react.RFuture;
+import react.Slot;
 
 public class CuteWorld {
 
@@ -80,20 +79,27 @@ public class CuteWorld {
     EMPTY_STACK.tiles = new int[0];
   }
 
-  private final Image[] tiles = new Image[tileNames.length];
-  private final Image[] shadows = new Image[shadowNames.length];
+  private final Tile[] tiles = new Tile[tileNames.length];
+  private final Tile[] shadows = new Tile[shadowNames.length];
+  private boolean loaded;
 
+  private final Platform plat;
+  private final IDimension viewSize;
   private Stack[] world;
   private int worldWidth, worldHeight;
   private double viewOriginX, viewOriginY, viewOriginZ;
   private int updateCounter = -1;
 
-  public CuteWorld(Json.Object data) {
+  public CuteWorld(Platform plat, Json.Object data) {
+    this.plat = plat;
+    this.viewSize = plat.graphics().viewSize;
     loadImages();
     initWorld(data);
   }
 
-  public CuteWorld(int width, int height) {
+  public CuteWorld(Platform plat, int width, int height) {
+    this.plat = plat;
+    this.viewSize = plat.graphics().viewSize;
     worldWidth = width;
     worldHeight = height;
 
@@ -142,8 +148,10 @@ public class CuteWorld {
   }
 
   public void paint(Surface surf, float alpha) {
+    if (!loaded) return; // avoid rendering until images load
+
     int startX = (int) pixelToWorldX(surf, 0);
-    int endX = (int) pixelToWorldX(surf, surf.width());
+    int endX = (int) pixelToWorldX(surf, viewSize.width());
     if (startX < 0)
       startX = 0;
     if (endX < 0)
@@ -154,7 +162,7 @@ public class CuteWorld {
       endX = worldWidth - 1;
 
     int startY = (int) pixelToWorldY(surf, 0, 0);
-    int endY = (int) pixelToWorldY(surf, surf.height(), MAX_STACK_HEIGHT);
+    int endY = (int) pixelToWorldY(surf, viewSize.height(), MAX_STACK_HEIGHT);
     if (startY < 0)
       startY = 0;
     if (endY < 0)
@@ -182,12 +190,12 @@ public class CuteWorld {
             // skip it (paintShadow() is relatively expensive).
             int px = worldToPixelX(surf, tx);
             int py = worldToPixelY(surf, ty, tz) - TILE_BASE;
-            if ((px > surf.width()) || (py > surf.height())
+            if ((px > viewSize.width()) || (py > viewSize.height())
                 || (px + TILE_WIDTH < 0) || (py + TILE_IMAGE_HEIGHT < 0)) {
               continue;
             }
 
-            surf.drawImage(tiles[stack.tiles[tz]], px, py);
+            surf.draw(tiles[stack.tiles[tz]], px, py);
             paintShadow(surf, tx, ty, px, py);
           } else if (tz >= stack.height()) {
             // Paint the objects in this stack.
@@ -270,15 +278,31 @@ public class CuteWorld {
   }
 
   private void loadImages() {
+    List<RFuture<Image>> wait = new ArrayList<>();
     // Load tiles.
     for (int i = 0; i < tiles.length; ++i) {
-      tiles[i] = assets().getImage(imageRes(tileNames[i]));
+      final int idx = i;
+      Image tile = plat.assets().getImage(imageRes(tileNames[i]));
+      tile.state.onSuccess(new Slot<Image>() {
+        public void onEmit (Image image) { tiles[idx] = image.texture(); }
+      });
+      wait.add(tile.state);
     }
 
     // Load shadows.
     for (int i = 0; i < shadows.length; ++i) {
-      shadows[i] = assets().getImage(imageRes(shadowNames[i]));
+      final int idx = i;
+      Image shadow = plat.assets().getImage(imageRes(shadowNames[i]));
+      shadow.state.onSuccess(new Slot<Image>() {
+        public void onEmit (Image image) { shadows[idx] = image.texture(); }
+      });
+      wait.add(shadow.state);
     }
+
+    // wait for all the images to load, then declare ourselves to be ready
+    RFuture.sequence(wait).onSuccess(new UnitSlot() {
+      public void onEmit () { loaded = true; }
+    });
   }
 
   /**
@@ -446,9 +470,9 @@ public class CuteWorld {
       if ((int) o.z == tz) {
         int px = worldToPixelX(surf, o.x(alpha));
         int py = worldToPixelY(surf, o.y(alpha), o.z(alpha));
-        float baseX = o.img.width() / 2;
-        float baseY = o.img.height() - OBJECT_BASE;
-        surf.drawImage(o.img, px - baseX, py - baseY);
+        float baseX = o.tile.width() / 2;
+        float baseY = o.tile.height() - OBJECT_BASE;
+        surf.draw(o.tile, px - baseX, py - baseY);
       }
     }
   }
@@ -465,36 +489,36 @@ public class CuteWorld {
     int hnw = height(tx - 1, ty - 1);
 
     if (hn > hc) {
-      surf.drawImage(shadows[SHADOW_NORTH], px, py);
+      surf.draw(shadows[SHADOW_NORTH], px, py);
     }
     if (hs > hc) {
-      surf.drawImage(shadows[SHADOW_SOUTH], px, py);
+      surf.draw(shadows[SHADOW_SOUTH], px, py);
     }
     if (he > hc) {
-      surf.drawImage(shadows[SHADOW_EAST], px, py);
+      surf.draw(shadows[SHADOW_EAST], px, py);
     }
     if (hw > hc) {
-      surf.drawImage(shadows[SHADOW_WEST], px, py);
+      surf.draw(shadows[SHADOW_WEST], px, py);
     }
 
     if ((hse > hc) && (he <= hc)) {
-      surf.drawImage(shadows[SHADOW_SOUTHEAST], px, py);
+      surf.draw(shadows[SHADOW_SOUTHEAST], px, py);
     }
     if ((hsw > hc) && (hw <= hc)) {
-      surf.drawImage(shadows[SHADOW_SOUTHWEST], px, py);
+      surf.draw(shadows[SHADOW_SOUTHWEST], px, py);
     }
     if ((hne > hc) && (he <= hc) && (hn <= hc)) {
-      surf.drawImage(shadows[SHADOW_NORTHEAST], px, py);
+      surf.draw(shadows[SHADOW_NORTHEAST], px, py);
     }
     if ((hnw > hc) && (hw <= hc) && (hn <= hc)) {
-      surf.drawImage(shadows[SHADOW_NORTHWEST], px, py);
+      surf.draw(shadows[SHADOW_NORTHWEST], px, py);
     }
 
     // Special case: the side shadow has to be drawn potentially multiple
     // times, because it's rendered on the front face of the stack.
     while (hc > 0) {
       if ((hsw >= hc) && (hs < hc)) {
-        surf.drawImage(shadows[SHADOW_SIDE_WEST], px, py);
+        surf.draw(shadows[SHADOW_SIDE_WEST], px, py);
       }
       py += TILE_DEPTH;
       if (hs >= hc) {
@@ -505,12 +529,12 @@ public class CuteWorld {
   }
 
   private double pixelToWorldX(Surface surf, float x) {
-    double center = surf.width() * 0.5;
+    double center = viewSize.width() * 0.5;
     return (int) (((viewOriginX * TILE_WIDTH) + x - center) / TILE_WIDTH);
   }
 
   private double pixelToWorldY(Surface surf, float y, double z) {
-    double center = surf.height() * 0.5;
+    double center = viewSize.height() * 0.5;
     return (y + (viewOriginY * TILE_HEIGHT - viewOriginZ * TILE_DEPTH)
         + (z * TILE_DEPTH) - center)
         / TILE_HEIGHT;
@@ -579,12 +603,12 @@ public class CuteWorld {
   }
 
   private int worldToPixelX(Surface surf, double x) {
-    double center = surf.width() * 0.5;
+    double center = viewSize.width() * 0.5;
     return (int) (center - (viewOriginX * TILE_WIDTH) + x * TILE_WIDTH);
   }
 
   private int worldToPixelY(Surface surf, double y, double z) {
-    double center = surf.height() * 0.5;
+    double center = viewSize.height() * 0.5;
     return (int) (center
         - (viewOriginY * TILE_HEIGHT - viewOriginZ * TILE_DEPTH) + y
         * TILE_HEIGHT - z * TILE_DEPTH);

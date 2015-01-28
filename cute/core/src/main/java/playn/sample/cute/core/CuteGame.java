@@ -18,19 +18,13 @@ package playn.sample.cute.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import playn.core.Game;
-import playn.core.ImmediateLayer;
-import playn.core.Json;
-import playn.core.Key;
-import playn.core.Keyboard;
-import playn.core.Pointer;
-import playn.core.Surface;
-import playn.core.SurfaceLayer;
-import playn.core.util.Callback;
-import static playn.core.PlayN.*;
+import playn.core.*;
+import playn.scene.Layer;
+import playn.scene.SceneGame;
 
-public class CuteGame extends Game.Default
-  implements Keyboard.Listener {
+import react.Slot;
+
+public class CuteGame extends SceneGame {
 
   private static final int NUM_STARS = 10;
 
@@ -44,64 +38,71 @@ public class CuteGame extends Game.Default
     }
   }
 
-  private ImmediateLayer gameLayer;
+  private final Pointer pointer;
+  private final Layer gameLayer;
   private float frameAlpha;
 
-  private CuteWorld world;
+  private final CuteWorld world;
   private CuteObject catGirl;
-  private CuteObject[] stars;
+  private final CuteObject[] stars;
 
   private boolean controlLeft, controlRight, controlUp, controlDown;
   private boolean controlJump;
   private float touchVectorX, touchVectorY;
 
-  public CuteGame() {
-    super(33);
-  }
-
-  @Override
-  public void init() {
+  public CuteGame(Platform plat) {
+    super(plat, 33);
     // graphics().setSize(800, 600);
 
-    keyboard().setListener(this);
-    pointer().setListener(new Pointer.Listener() {
-      @Override
-      public void onPointerEnd(Pointer.Event event) {
-        touchVectorX = touchVectorY = 0;
-      }
-      @Override
-      public void onPointerCancel(Pointer.Event event) {
-        touchVectorX = touchVectorY = 0;
-      }
-      @Override
-      public void onPointerDrag(Pointer.Event event) {
-        touchMove(event.x(), event.y());
-      }
-      @Override
-      public void onPointerStart(Pointer.Event event) {
-        touchMove(event.x(), event.y());
+    plat.input().keyboardEvents.connect(new Keyboard.KeySlot() {
+      @Override public void onEmit (Keyboard.KeyEvent event) {
+        if (event.down) {
+          Integer tileIdx = ADD_TILE_KEYS.get(event.key);
+          if (tileIdx != null) {
+            addTile((int) catGirl.x, (int) catGirl.y, tileIdx);
+            return;
+          }
+        }
+
+        switch (event.key) {
+          case SPACE:
+            if (event.down) controlJump = true;
+            break;
+          case ESCAPE:
+            if(event.down) removeTopTile((int) catGirl.x, (int) catGirl.y);
+            break;
+          case LEFT:
+            controlLeft = event.down;
+            break;
+          case UP:
+            controlUp = event.down;
+            break;
+          case RIGHT:
+            controlRight = event.down;
+            break;
+          case DOWN:
+            controlDown = event.down;
+            break;
+          default:
+            break; // nada
+        }
       }
     });
 
-    // TODO(jgw): Until net is filled in everywhere, create a simple grass world.
-
-    /*
-    platform().net().get("/rpc?map", new Callback<String>() {
-      @Override
-      public void onSuccess(String json) {
-        DataObject data = platform().parseData(json);
-        world = new CuteWorld(plat, data);
-        initStuff();
-      }
-
-      @Override
-      public void onFailure(Throwable error) {
-        platform().log("error loading map");
+    pointer = new Pointer(plat);
+    pointer.events.connect(new Slot<Pointer.Event>() {
+      @Override public void onEmit (Pointer.Event event) {
+        switch (event.kind) {
+          case START: touchMove(event.x, event.y); break;
+          case  DRAG: touchMove(event.x, event.y); break;
+          default: // END/CANCEL
+            touchVectorX = touchVectorY = 0;
+            break;
+        }
       }
     });
-    */
 
-    world = new CuteWorld(16, 16);
+    world = new CuteWorld(plat, 16, 16);
 
     // Grass.
     for (int y = 0; y < 16; ++y) {
@@ -134,136 +135,75 @@ public class CuteGame extends Game.Default
     world.addTile(6, 6, 15);
 
     // create an immediate layer that handles all of our rendering
-    gameLayer = graphics().createImmediateLayer(new ImmediateLayer.Renderer() {
-      public void render(Surface surface) {
-        world.setViewOrigin(catGirl.x(frameAlpha), catGirl.y(frameAlpha), catGirl.z(frameAlpha));
+    rootLayer.add(gameLayer = new Layer() {
+      @Override protected void paintImpl (Surface surface) {
+        if (catGirl != null) world.setViewOrigin(
+          catGirl.x(frameAlpha), catGirl.y(frameAlpha), catGirl.z(frameAlpha));
         surface.clear();
         world.paint(surface, frameAlpha);
       }
     });
-    graphics().rootLayer().add(gameLayer);
 
-    initStuff();
-  }
+    plat.assets().getImage("images/character_cat_girl.png").state.onSuccess(new Slot<Image>() {
+      public void onEmit (Image image) {
+        catGirl = new CuteObject(image.texture());
+        catGirl.setPos(2, 2, 1);
+        catGirl.r = 0.3;
+        world.addObject(catGirl);
 
-  private void initStuff() {
-    catGirl = new CuteObject(assets().getImage("images/character_cat_girl.png"));
-    catGirl.setPos(2, 2, 1);
-    catGirl.r = 0.3;
-    world.addObject(catGirl);
+        update.connect(new Slot<Clock>() {
+          public void onEmit (Clock clock) {
+            catGirl.setAcceleration(0, 0, 0);
+
+            if (catGirl.isResting()) {
+              // Keyboard control.
+              if (controlLeft) catGirl.ax = -1.0;
+              if (controlRight) catGirl.ax = 1.0;
+              if (controlUp) catGirl.ay = -1.0;
+              if (controlDown) catGirl.ay = 1.0;
+
+              // Mouse Control.
+              catGirl.ax += touchVectorX;
+              catGirl.ay += touchVectorY;
+
+              // Jump Control.
+              if (controlJump) {
+                catGirl.vz = 0.2;
+                controlJump = false;
+              }
+            }
+          }
+        });
+      }
+    });
 
     stars = new CuteObject[NUM_STARS];
-    for (int i = 0; i < NUM_STARS; ++i) {
-      stars[i] = new CuteObject(assets().getImage("images/star.png"));
-      stars[i].setPos(Math.random() * world.worldWidth(), Math.random()
-          * world.worldHeight(), 10);
-      world.addObject(stars[i]);
-    }
+    plat.assets().getImage("images/star.png").state.onSuccess(new Slot<Image>() {
+      public void onEmit (Image image) {
+        for (int i = 0; i < NUM_STARS; ++i) {
+          stars[i] = new CuteObject(image.texture());
+          stars[i].setPos(Math.random() * world.worldWidth(),
+                          Math.random() * world.worldHeight(), 10);
+          world.addObject(stars[i]);
+        }
+      }
+    });
   }
 
-  @Override
-  public void onKeyDown(Keyboard.Event event) {
-    Integer tileIdx = ADD_TILE_KEYS.get(event.key());
-    if (tileIdx != null) {
-      addTile((int) catGirl.x, (int) catGirl.y, tileIdx);
-      return;
-    }
-
-    switch (event.key()) {
-    case SPACE:
-      controlJump = true;
-      break;
-    case ESCAPE:
-      removeTopTile((int) catGirl.x, (int) catGirl.y);
-      break;
-    case LEFT:
-      controlLeft = true;
-      break;
-    case UP:
-      controlUp = true;
-      break;
-    case RIGHT:
-      controlRight = true;
-      break;
-    case DOWN:
-      controlDown = true;
-      break;
-    default:
-      break; // nada
-    }
+  @Override public void update(Clock clock) {
+    super.update(clock);
+    world.updatePhysics(clock.dt / 1000f);
   }
 
-  @Override
-  public void onKeyTyped(Keyboard.TypedEvent event) {
-    // nada
-  }
-
-  @Override
-  public void onKeyUp(Keyboard.Event event) {
-    switch (event.key()) {
-    case LEFT:
-      controlLeft = false;
-      break;
-    case UP:
-      controlUp = false;
-      break;
-    case RIGHT:
-      controlRight = false;
-      break;
-    case DOWN:
-      controlDown = false;
-      break;
-    default:
-      break; // nada
-    }
-  }
-
-  @Override
-  public void update(int delta) {
-    if (world == null) {
-      return;
-    }
-
-    catGirl.setAcceleration(0, 0, 0);
-
-    if (catGirl.isResting()) {
-      // Keyboard control.
-      if (controlLeft) {
-        catGirl.ax = -1.0;
-      }
-      if (controlRight) {
-        catGirl.ax = 1.0;
-      }
-      if (controlUp) {
-        catGirl.ay = -1.0;
-      }
-      if (controlDown) {
-        catGirl.ay = 1.0;
-      }
-
-      // Mouse Control.
-      catGirl.ax += touchVectorX;
-      catGirl.ay += touchVectorY;
-
-      // Jump Control.
-      if (controlJump) {
-        catGirl.vz = 0.2;
-        controlJump = false;
-      }
-    }
-
-    world.updatePhysics(delta / 1000f);
-  }
-
-  @Override
-  public void paint(float alpha) {
+  @Override public void paint(Clock clock) {
     // save this, as we'll use it in our immediate layer renderer
-    frameAlpha = alpha;
+    frameAlpha = clock.alpha;
+    super.paint(clock);
   }
 
   private void touchMove(float x, float y) {
-    float cx = graphics().width() / 2;
-    float cy = graphics().height() / 2;
+    float cx = plat.graphics().viewSize.width() / 2;
+    float cy = plat.graphics().viewSize.height() / 2;
 
     touchVectorX = (x - cx) * 1.0f / cx;
     touchVectorY = (y - cy) * 1.0f / cy;
@@ -272,41 +212,33 @@ public class CuteGame extends Game.Default
   private void addTile(int x, int y, int type) {
     world.addTile(x, y, type);
 
-    Json.Writer w = json().newWriter();
-    w.object();
-    w.value("op", "addTop");
-    w.value("x", x);
-    w.value("y", y);
-    w.value("type", type);
-    w.end();
+    // Json.Writer w = plat.json().newWriter();
+    // w.object();
+    // w.value("op", "addTop");
+    // w.value("x", x);
+    // w.value("y", y);
+    // w.value("type", type);
+    // w.end();
 
-    post(w.write());
+    // post(w.write());
   }
 
   private void removeTopTile(int x, int y) {
     world.removeTopTile(x, y);
 
-    Json.Writer w = json().newWriter();
-    w.object();
-    w.value("op", "removeTop");
-    w.value("x", x);
-    w.value("y", y);
-    w.end();
+    // Json.Writer w = plat.json().newWriter();
+    // w.object();
+    // w.value("op", "removeTop");
+    // w.value("x", x);
+    // w.value("y", y);
+    // w.end();
 
-    post(w.write());
+    // post(w.write());
   }
 
   private void post(String payload) {
-    net().post("/rpc", payload, new Callback<String>() {
-      @Override
-      public void onSuccess(String response) {
-        // Nada.
-      }
-
-      @Override
-      public void onFailure(Throwable error) {
-        // TODO
-      }
+    plat.net().post("/rpc", payload).onSuccess(new Slot<String>() {
+      public void onEmit (String rsp) {} // TODO
     });
   }
 }

@@ -15,49 +15,12 @@
  */
 package playn.sample.cute.android;
 
-import android.content.Context;
-import android.os.Bundle;
-import android.os.PowerManager;
-
 import playn.android.GameActivity;
-import playn.core.PlayN;
 import playn.sample.cute.core.CuteGame;
 
 public class CuteActivity extends GameActivity {
 
-  private PowerManager.WakeLock wakeLock;
-
-  @Override
-  public void main(){
-    PlayN.run(new CuteGame());
-  }
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-
-    // acquire our wake lock, to keep the screen from dimming while we're active
-    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-    wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE,
-                              "playn.cute");
-    wakeLock.acquire();
-  }
-
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    wakeLock.release();
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    wakeLock.release();
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    wakeLock.acquire();
+  @Override public void main () {
+    new CuteGame(platform());
   }
 }

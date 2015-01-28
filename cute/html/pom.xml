@@ -40,6 +40,13 @@
 
     <dependency>
       <groupId>io.playn</groupId>
+      <artifactId>playn-scene</artifactId>
+      <version>${playn.version}</version>
+      <classifier>sources</classifier>
+    </dependency>
+
+    <dependency>
+      <groupId>io.playn</groupId>
       <artifactId>playn-html</artifactId>
       <version>${playn.version}</version>
     </dependency>
