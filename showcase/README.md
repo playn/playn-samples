@@ -1,7 +1,7 @@
 # PlayN Showcase Sample
 
-This sample program displays a bunch of little graphics techniques, as well as integration of PlayN
-with [JBox2D] for physics simulation.
+This sample program displays a bunch of random PlayN stuff as well as integration with [TriplePlay]
+to display a UI.
 
 ## Building and running
 
@@ -18,3 +18,4 @@ documentation on the PlayN website.
 [JBox2D]: http://www.jbox2d.org/
 [Maven]: http://maven.apache.org/
 [development environment]: http://playn.github.io/docs/setup.html
+[TriplePlay]: https://github.com/threerings/tripleplay/
