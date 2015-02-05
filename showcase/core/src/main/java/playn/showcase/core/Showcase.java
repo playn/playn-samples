@@ -31,7 +31,6 @@ import playn.core.Touch;
 import playn.scene.Pointer;
 import playn.scene.SceneGame;
 
-import playn.showcase.core.peas.PeasDemo;
 import playn.showcase.core.snake.SnakeDemo;
 import playn.showcase.core.sprites.SpritesDemo;
 import playn.showcase.core.swirl.SwirlDemo;
@@ -69,7 +68,6 @@ public class Showcase extends SceneGame {
   public final List<Demo> demos = new ArrayList<Demo>(); {
     // add your demo here to enable it in the showcase
     demos.add(new SpritesDemo());
-    demos.add(new PeasDemo());
     demos.add(new SwirlDemo());
     demos.add(new SnakeDemo());
     demos.add(new TextDemo());
