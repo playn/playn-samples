@@ -24,7 +24,10 @@ import org.robovm.apple.uikit.UIInterfaceOrientationMask;
 import org.robovm.apple.uikit.UIScreen;
 import org.robovm.apple.uikit.UIWindow;
 
+import react.Slot;
+
 import playn.robovm.RoboPlatform;
+import playn.robovm.RoboOrientEvent;
 import playn.showcase.core.Showcase;
 
 public class ShowcaseRoboVM extends UIApplicationDelegateAdapter {
@@ -50,10 +53,11 @@ public class ShowcaseRoboVM extends UIApplicationDelegateAdapter {
                               ", orient=" + device.getOrientation() + "]";
                           }
     });
-    pf.setListener(new RoboPlatform.OrientationListener() {
-      public void willRotate(UIInterfaceOrientation toOrient, double duration) {}
-      public void didRotate(UIInterfaceOrientation orientation) {
-        game.rotate.emit(game);
+    pf.orient.connect(new Slot<RoboOrientEvent>() {
+      public void onEmit (RoboOrientEvent event) {
+        if (event instanceof RoboOrientEvent.DidRotate) {
+          game.rotate.emit(game);
+        }
       }
     });
 
