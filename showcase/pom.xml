@@ -9,6 +9,7 @@
     <version>2.0-SNAPSHOT</version>
   </parent>
 
+  <groupId>io.playn.samples</groupId>
   <artifactId>playn-showcase</artifactId>
   <name>PlayN Showcase Metaproject</name>
   <version>1.0-SNAPSHOT</version>

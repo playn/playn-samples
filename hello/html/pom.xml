@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.playn</groupId>
+    <groupId>io.playn.samples</groupId>
     <artifactId>playn-hello</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
@@ -20,20 +20,20 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.playn</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>playn-hello-core</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>io.playn</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>playn-hello-core</artifactId>
       <version>${project.version}</version>
       <classifier>sources</classifier>
     </dependency>
 
     <dependency>
-      <groupId>io.playn</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>playn-hello-assets</artifactId>
       <version>${project.version}</version>
     </dependency>
