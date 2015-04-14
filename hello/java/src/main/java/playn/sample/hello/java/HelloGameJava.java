@@ -15,13 +15,13 @@
  */
 package playn.sample.hello.java;
 
-import playn.java.JavaPlatform;
+import playn.java.LWJGLPlatform;
 import playn.sample.hello.core.HelloGame;
 
 public class HelloGameJava {
 
   public static void main(String[] args) {
-    JavaPlatform plat = new JavaPlatform(new JavaPlatform.Config());
+    LWJGLPlatform plat = new LWJGLPlatform(new LWJGLPlatform.Config());
     new HelloGame(plat);
     plat.start();
   }

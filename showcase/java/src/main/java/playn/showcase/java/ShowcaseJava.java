@@ -15,14 +15,14 @@
  */
 package playn.showcase.java;
 
-import playn.java.JavaPlatform;
+import playn.java.LWJGLPlatform;
 import playn.showcase.core.Showcase;
 
 public class ShowcaseJava {
 
   public static void main(String[] args) {
-    JavaPlatform.Config config = new JavaPlatform.Config();
-    JavaPlatform plat = new JavaPlatform(config);
+    LWJGLPlatform.Config config = new LWJGLPlatform.Config();
+    LWJGLPlatform plat = new LWJGLPlatform(config);
     plat.graphics().registerFont("Museo-300", "text/Museo.ttf");
     new Showcase(plat, new Showcase.DeviceService() {
       public String info () {

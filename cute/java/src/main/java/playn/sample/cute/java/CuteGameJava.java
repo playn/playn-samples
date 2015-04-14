@@ -15,16 +15,16 @@
  */
 package playn.sample.cute.java;
 
-import playn.java.JavaPlatform;
+import playn.java.LWJGLPlatform;
 import playn.sample.cute.core.CuteGame;
 
 public class CuteGameJava {
 
   public static void main(String[] args) {
-    JavaPlatform.Config config = new JavaPlatform.Config();
+    LWJGLPlatform.Config config = new LWJGLPlatform.Config();
     config.width = 800;
     config.height = 600;
-    JavaPlatform pf = new JavaPlatform(config);
+    LWJGLPlatform pf = new LWJGLPlatform(config);
     new CuteGame(pf);
     pf.start();
   }

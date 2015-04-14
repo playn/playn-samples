@@ -15,14 +15,14 @@
  */
 package physics.java;
 
-import playn.java.JavaPlatform;
+import playn.java.LWJGLPlatform;
 import physics.core.Physics;
 
 public class PhysicsJava {
 
   public static void main(String[] args) {
-    JavaPlatform.Config config = new JavaPlatform.Config();
-    JavaPlatform plat = new JavaPlatform(config);
+    LWJGLPlatform.Config config = new LWJGLPlatform.Config();
+    LWJGLPlatform plat = new LWJGLPlatform(config);
     new Physics(plat);
     plat.start();
   }
