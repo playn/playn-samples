@@ -37,7 +37,7 @@
             <artifactId>robovm-maven-plugin</artifactId>
             <version>${robovm.maven.version}</version>
             <configuration>
-              <deviceName>iPad-Retina</deviceName>
+              <deviceName>iPad-Air</deviceName>
             </configuration>
             <executions>
               <execution>
