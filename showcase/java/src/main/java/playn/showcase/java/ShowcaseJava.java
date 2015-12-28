@@ -23,7 +23,7 @@ public class ShowcaseJava {
   public static void main(String[] args) throws Exception {
     LWJGLPlatform.Config config = new LWJGLPlatform.Config();
     LWJGLPlatform plat = new LWJGLPlatform(config);
-    plat.graphics().registerFont("Museo-300", plat.assets().getFont("text/Museo.ttf"));
+    plat.graphics().registerFont("Museo-300", plat.assets().getFont("text/Museo.otf"));
     new Showcase(plat, new Showcase.DeviceService() {
       public String info () {
         Runtime rt = Runtime.getRuntime();
