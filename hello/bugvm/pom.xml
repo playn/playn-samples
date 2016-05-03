@@ -9,9 +9,9 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>playn-hello-robovm</artifactId>
+  <artifactId>playn-hello-bugvm</artifactId>
   <packaging>jar</packaging>
-  <name>PlayN Hello RoboVM</name>
+  <name>PlayN Hello BugVM</name>
 
   <dependencies>
     <dependency>
@@ -29,13 +29,13 @@
 
   <profiles>
     <profile>
-      <id>robosim</id>
+      <id>bugsim</id>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.robovm</groupId>
-            <artifactId>robovm-maven-plugin</artifactId>
-            <version>${robovm.maven.version}</version>
+            <groupId>com.bugvm</groupId>
+            <artifactId>bugvm-maven</artifactId>
+            <version>${bugvm.version}</version>
             <configuration>
               <deviceName>iPhone-6-Plus</deviceName>
             </configuration>
@@ -52,13 +52,13 @@
       </build>
     </profile>
     <profile>
-      <id>robodev</id>
+      <id>bugdev</id>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.robovm</groupId>
-            <artifactId>robovm-maven-plugin</artifactId>
-            <version>${robovm.maven.version}</version>
+            <groupId>com.bugvm</groupId>
+            <artifactId>bugvm-maven</artifactId>
+            <version>${bugvm.version}</version>
             <executions>
               <execution>
                 <phase>install</phase>
