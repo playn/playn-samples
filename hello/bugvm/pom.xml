@@ -22,7 +22,7 @@
 
     <dependency>
       <groupId>io.playn</groupId>
-      <artifactId>playn-robovm</artifactId>
+      <artifactId>playn-bugvm</artifactId>
       <version>${playn.version}</version>
     </dependency>
   </dependencies>
