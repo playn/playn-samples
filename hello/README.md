@@ -11,7 +11,14 @@ Using [Maven], do:
 
 ```
 cd playn-samples/hello
-mvn test -Pjava
+mvn test -Pbugsim
+
+```
+
+```
+cd playn-samples/hello
+mvn install -Pbugdev
+
 ```
 
 For setting up in an IDE or building for Android, iOS and HTML, see the [development environment]
