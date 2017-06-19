@@ -17,6 +17,7 @@ package playn.showcase.android;
 
 import android.app.ActivityManager;
 import android.os.Build;
+import android.graphics.Typeface;
 
 import playn.android.GameActivity;
 import playn.core.Font;
@@ -27,10 +28,11 @@ public class ShowcaseActivity extends GameActivity {
 
   @Override
   public void main(){
-    platform().graphics().registerFont("text/Museo.otf", "Museo-300", Font.Style.PLAIN);
-    platform().graphics().registerFont("text/Museo.otf", "Museo-300", Font.Style.BOLD);
-    platform().graphics().registerFont("text/Museo.otf", "Museo-300", Font.Style.ITALIC);
-    platform().graphics().registerFont("text/Museo.otf", "Museo-300", Font.Style.BOLD_ITALIC);
+    Typeface face = platform().assets().getTypeface("text/Museo.otf");
+    platform().graphics().registerFont(face, "Museo-300", Font.Style.PLAIN);
+    platform().graphics().registerFont(face, "Museo-300", Font.Style.BOLD);
+    platform().graphics().registerFont(face, "Museo-300", Font.Style.ITALIC);
+    platform().graphics().registerFont(face, "Museo-300", Font.Style.BOLD_ITALIC);
     _game = new Showcase(platform(), new Showcase.DeviceService() {
       public String info() {
         Runtime rt = Runtime.getRuntime();
