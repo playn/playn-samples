@@ -1,0 +1,11 @@
+<module rename-to='drop'>
+  <inherits name='playn.Scene'/>
+  <inherits name='DropAssets'/>
+
+  <source path='core'/>
+  <source path='html'/>
+
+  <public path="resources" />
+
+  <entry-point class='io.playn.drop.html.DropHtml'/>
+</module>

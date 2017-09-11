@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.playn.drop</groupId>
+    <artifactId>drop</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>drop-java</artifactId>
+  <packaging>jar</packaging>
+  <name>Drop Java</name>
+
+  <properties>
+    <mainClass>io.playn.drop.java.DropJava</mainClass>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.playn.drop</groupId>
+      <artifactId>drop-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.playn.drop</groupId>
+      <artifactId>drop-assets</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.playn</groupId>
+      <artifactId>playn-java-lwjgl</artifactId>
+      <version>${playn.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- builds a standalone jar file during 'mvn package' -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>${mainClass}</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>java</id>
+      <build>
+        <plugins>
+          <!-- allows testing of Java backend via: mvn test -Pjava -->
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <phase>test</phase>
+                <configuration>
+                  <target>
+                    <!-- these shenanigans are needed to pass -XstartOnFirstThread on Mac OS
+                         but not on other OSes where they would cause the JVM to fail, yay -->
+                    <condition property="jvmarg" value="-XstartOnFirstThread" else="-Dfoo=bar">
+                      <os family="mac"/>
+                    </condition>
+                    <java fork="true" classname="${mainClass}" classpathref="maven.test.classpath">
+                      <jvmarg value="${jvmarg}"/>
+                    </java>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>
