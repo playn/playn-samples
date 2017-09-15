@@ -9,7 +9,6 @@ import playn.core.Sound;
 import playn.core.Surface;
 import playn.scene.ImageLayer;
 import playn.scene.Layer;
-import playn.scene.Mouse;
 import playn.scene.Pointer;
 import playn.scene.SceneGame;
 import pythagoras.f.Rectangle;
@@ -106,9 +105,8 @@ public class Drop extends SceneGame
 		});
 		spawnRaindrop();
 
-		// wire up pointer and mouse event dispatch
+		// wire up pointer (mouse + touch) event dispatch
 		new Pointer(plat, rootLayer, false);
-		plat.input().mouseEvents.connect(new Mouse.Dispatcher(rootLayer, false));
 
 		bgLayer.events().connect(new Pointer.Listener() {
 			@Override
