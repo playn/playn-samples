@@ -115,6 +115,7 @@
         <!-- we need class metadata, override PlayN's disabling of such -->
         <configuration>
           <disableClassMetadata>false</disableClassMetadata>
+          <extraJvmArgs>-Xmx1024m</extraJvmArgs>
         </configuration>
         <executions>
           <execution>
