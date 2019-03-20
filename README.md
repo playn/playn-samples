@@ -3,7 +3,7 @@ PlayN Sample Projects
 
 PlayN is a cross-platform game development toolkit, which can be found here:
 
- http://code.google.com/p/playn/
+ http://playn.io/
 
 This project contains sample games and demos for the PlayN toolkit.
 
@@ -12,7 +12,7 @@ Building and running
 
 Instructions on building and running these samples can be found here:
 
- http://code.google.com/p/playn/wiki/GettingStarted#Running_the_sample_projects
+ http://playn.io/docs/setup.html
 
 Discussion and Feedback
 -----------------------
